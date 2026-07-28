@@ -1,0 +1,165 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{% translate "Catalog" %} | TechVault Electronics{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-8 space-y-8 min-h-screen">
+
+    <div class="space-y-6 border-b border-slate-200 pb-6">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+            <div>
+                <h1 class="text-3xl font-black text-slate-950">
+                    {% if category %}{{ category.name }}{% else %}{% translate "Product Catalog" %}{% endif %}
+                </h1>
+                <p class="text-sm text-slate-400 mt-1">{% translate "Explore available devices, filter specs, and build your cart." %}</p>
+            </div>
+        </div>
+
+        <div class="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-4 rounded-2xl border border-slate-200/80 shadow-sm">
+            <div class="flex flex-wrap items-center gap-2">
+                <span class="text-xs font-black uppercase text-slate-400 tracking-wider mr-1">{% translate "Categories" %}:</span>
+                <a href="{% url 'shop:product_list' %}"
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {% if not category %}bg-indigo-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    {% translate "All Products" %}
+                </a>
+                {% for cat in categories %}
+                <a href="{% url 'shop:product_list_by_category' cat.slug %}"
+                   class="px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all {% if category.slug == cat.slug %}bg-indigo-600 text-white shadow-sm{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    {{ cat.name }}
+                </a>
+                {% endfor %}
+            </div>
+
+            <div class="flex flex-wrap items-center gap-1.5">
+                <span class="text-xs font-black uppercase text-slate-400 tracking-wider mr-1">{% translate "Brands" %}:</span>
+                <a href="{% url 'shop:product_list' %}" class="px-3 py-1.5 rounded-lg text-xs font-bold {% if not selected_brand %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    {% translate "All" %}
+                </a>
+                {% for brand in available_brands %}
+                <a href="{% url 'shop:product_list' %}?brand={{ brand }}" class="px-3 py-1.5 rounded-lg text-xs font-bold {% if selected_brand == brand %}bg-slate-900 text-white{% else %}bg-slate-100 text-slate-600 hover:bg-slate-200{% endif %}">
+                    {{ brand }}
+                </a>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
+        {% for product in products %}
+        <article class="group bg-white rounded-2xl border border-slate-200/80 shadow-sm hover:shadow-xl transition-all duration-200 flex flex-col justify-between overflow-hidden">
+
+            <div class="relative bg-slate-50/80 p-6 flex justify-center items-center h-52 border-b border-slate-100">
+                {% if product.image %}
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" class="max-h-40 w-auto object-contain group-hover:scale-105 transition-transform duration-300">
+                {% else %}
+                    <img src="https://images.unsplash.com/photo-1511707171634-5f897ff02aa9?auto=format&fit=crop&w=300&q=80" alt="Fallback" class="max-h-40 w-auto object-contain opacity-60">
+                {% endif %}
+            </div>
+
+            <div class="p-5 flex flex-col flex-grow justify-between space-y-4">
+                <div>
+                    <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-black uppercase tracking-wider">{{ product.brand }}</span>
+                    <h3 class="font-black text-slate-900 text-base mt-1 line-clamp-1">
+                        <a href="{% url 'shop:product_detail' product.slug %}" class="hover:text-indigo-600 transition-colors">
+                            {{ product.name }}
+                        </a>
+                    </h3>
+                </div>
+
+                <div class="space-y-3 pt-3 border-t border-slate-100">
+                    <div class="flex items-center justify-between">
+                        <span class="text-xl font-black text-slate-950">${{ product.price }}</span>
+
+                        <button type="button" onclick="openSpecsModal('specs-modal-{{ product.id }}')" class="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold transition-colors">
+                            📋 {% translate "Specs" %}
+                        </button>
+                    </div>
+
+                    <form action="{% url 'shop:cart_add' product.id %}" method="POST">
+                        {% csrf_token %}
+                        <button type="submit" class="w-full py-3 bg-slate-950 hover:bg-indigo-600 text-white rounded-xl text-xs font-bold uppercase tracking-wider transition-colors shadow-sm">
+                            + {% translate "Add to Cart" %}
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+        </article>
+
+        <div id="specs-modal-{{ product.id }}" class="fixed inset-0 bg-slate-950/60 backdrop-blur-sm hidden z-50 flex items-center justify-center p-4">
+            <div class="bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl border border-slate-200 space-y-4">
+                <div class="flex items-center justify-between border-b border-slate-100 pb-3">
+                    <div>
+                        <span class="text-[9px] bg-indigo-50 text-indigo-600 px-2 py-0.5 rounded font-black uppercase">{{ product.brand }}</span>
+                        <h3 class="text-lg font-black text-slate-900 mt-1">{{ product.name }} {% translate "Specs" %}</h3>
+                    </div>
+                    <button type="button" onclick="closeSpecsModal('specs-modal-{{ product.id }}')" class="text-slate-400 hover:text-slate-800 font-bold text-2xl leading-none">&times;</button>
+                </div>
+
+                <div class="space-y-2 max-h-64 overflow-y-auto pr-1">
+                    {% if product.specs %}
+                        <dl class="divide-y divide-slate-100 text-xs">
+                            {% for key, value in product.specs.items %}
+                            <div class="py-2.5 flex justify-between gap-4">
+                                <dt class="font-bold text-slate-500 capitalize">{{ key }}</dt>
+                                <dd class="font-black text-slate-900 text-right">{{ value }}</dd>
+                            </div>
+                            {% endfor %}
+                        </dl>
+                    {% else %}
+                        <p class="text-xs text-slate-400 italic py-6 text-center">{% translate "No detailed specification parameters logged for this product." %}</p>
+                    {% endif %}
+                </div>
+
+                <div class="pt-3 border-t border-slate-100 flex justify-end">
+                    <button type="button" onclick="closeSpecsModal('specs-modal-{{ product.id }}')" class="px-5 py-2.5 bg-slate-950 text-white text-xs font-bold rounded-xl hover:bg-slate-800 transition-colors">
+                        {% translate "Close Specs" %}
+                    </button>
+                </div>
+            </div>
+        </div>
+
+        {% empty %}
+        <div class="col-span-full bg-white border border-slate-200/80 rounded-2xl p-12 text-center text-slate-400 font-semibold text-sm shadow-sm">
+            {% translate "No catalog items available matching your filter criteria." %}
+        </div>
+        {% endfor %}
+    </div>
+
+    {% if products.has_other_pages %}
+    <div class="flex items-center justify-between border-t border-slate-200 pt-6">
+        <div>
+            {% if products.has_previous %}
+                <a href="?page={{ products.previous_page_number }}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition-colors">
+                    &larr; {% translate "Previous Page" %}
+                </a>
+            {% endif %}
+        </div>
+
+        <span class="text-xs font-bold text-slate-500">
+            {% translate "Page" %} {{ products.number }} {% translate "of" %} {{ products.paginator.num_pages }}
+        </span>
+
+        <div>
+            {% if products.has_next %}
+                <a href="?page={{ products.next_page_number }}{% if selected_brand %}&brand={{ selected_brand }}{% endif %}" class="px-4 py-2 bg-white border border-slate-200 text-slate-700 text-xs font-bold rounded-xl hover:bg-slate-100 transition-colors">
+                    {% translate "Next Page" %} &rarr;
+                </a>
+            {% endif %}
+        </div>
+    </div>
+    {% endif %}
+
+</div>
+
+<script>
+  function openSpecsModal(modalId) {
+    document.getElementById(modalId).classList.remove('hidden');
+  }
+  function closeSpecsModal(modalId) {
+    document.getElementById(modalId).classList.add('hidden');
+  }
+</script>
+{% endblock %}

@@ -1,0 +1,195 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="{{ LANGUAGE_CODE|default:'en' }}">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}TechVault | {% translate "Premium Electronics" %}{% endblock %}</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .profile-dropdown:focus-within .dropdown-menu {
+            opacity: 1;
+            transform: translateY(0) scale(1);
+            pointer-events: auto;
+        }
+    </style>
+</head>
+<body class="bg-slate-50 text-slate-900 antialiased min-h-screen flex flex-col justify-between selection:bg-indigo-600/10 selection:text-indigo-900 m-0 p-0">
+
+    <nav class="sticky top-0 z-50 bg-white/70 backdrop-blur-md border-b border-slate-200/60 w-full">
+        <div class="w-full px-6">
+            <div class="flex items-center justify-between h-20 gap-4">
+
+                <div class="flex items-center flex-shrink-0">
+                    <a href="{% url 'shop:home' %}" class="text-2xl font-black tracking-tight text-slate-950 hover:opacity-80 transition-opacity">
+                        TechVault<span class="text-indigo-600">.</span>
+                    </a>
+                </div>
+
+                {% if request.resolver_match.url_name != 'home' %}
+                <div class="flex-grow max-w-lg mx-4">
+                    <form action="{% url 'shop:product_list' %}" method="GET" class="relative">
+                        {% if selected_brand %}
+                            <input type="hidden" name="brand" value="{{ selected_brand }}">
+                        {% endif %}
+                        <div class="relative flex items-center">
+                            <span class="absolute left-4 text-slate-400">
+                                <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                                </svg>
+                            </span>
+                            <input
+                                type="text"
+                                name="search"
+                                placeholder="{% translate 'Search premium electronics...' %}"
+                                value="{{ request.GET.search|default:'' }}"
+                                class="w-full bg-slate-100/80 border border-slate-200 rounded-2xl pl-11 pr-4 py-2.5 text-sm text-slate-900 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-600/40 focus:bg-white transition-all"
+                            >
+                        </div>
+                    </form>
+                </div>
+                {% else %}
+                <div class="flex-grow"></div>
+                {% endif %}
+
+                <div class="flex items-center space-x-4 sm:space-x-6 flex-shrink-0">
+
+                    <div class="hidden lg:flex items-center space-x-6 font-semibold text-sm mr-2">
+                        <a href="{% url 'shop:home' %}"
+                           class="transition-colors {% if request.resolver_match.url_name == 'home' %}text-indigo-600 font-bold border-b-2 border-indigo-600 pb-0.5{% else %}text-slate-500 hover:text-slate-950{% endif %}">
+                            {% translate "Home" %}
+                        </a>
+                        <a href="{% url 'shop:product_list' %}"
+                           class="transition-colors {% if request.resolver_match.url_name == 'product_list' or request.resolver_match.url_name == 'product_list_by_category' %}text-indigo-600 font-bold border-b-2 border-indigo-600 pb-0.5{% else %}text-slate-500 hover:text-slate-950{% endif %}">
+                            {% translate "Catalog" %}
+                        </a>
+                        <a href="{% url 'shop:about_us' %}"
+                           class="transition-colors {% if request.resolver_match.url_name == 'about_us' %}text-indigo-600 font-bold border-b-2 border-indigo-600 pb-0.5{% else %}text-slate-500 hover:text-slate-950{% endif %}">
+                            {% translate "About Us" %}
+                        </a>
+                        <a href="{% url 'shop:contact_us' %}"
+                           class="transition-colors {% if request.resolver_match.url_name == 'contact_us' %}text-indigo-600 font-bold border-b-2 border-indigo-600 pb-0.5{% else %}text-slate-500 hover:text-slate-950{% endif %}">
+                            {% translate "Support" %}
+                        </a>
+                    </div>
+
+                    <form action="{% url 'set_language' %}" method="post" id="language-switcher-form" class="inline-block">
+                        {% csrf_token %}
+                        <input name="next" type="hidden" value="{{ request.get_full_path }}">
+                        <select name="language" onchange="this.form.submit()" class="bg-slate-100 hover:bg-slate-200 text-slate-800 text-xs font-extrabold px-3 py-2 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-600 transition-all cursor-pointer">
+                            {% get_current_language as CURRENT_LANG %}
+                            {% get_available_languages as AVAILABLE_LANGS %}
+                            {% for lang_code, lang_name in AVAILABLE_LANGS %}
+                                <option value="{{ lang_code }}" {% if lang_code == CURRENT_LANG %}selected{% endif %}>
+                                    {% if lang_code == 'en' %}🇬🇧 EN
+                                    {% elif lang_code == 'ru' %}🇷🇺 RU
+                                    {% elif lang_code == 'ky' %}🇰🇬 KY
+                                    {% endif %}
+                                </option>
+                            {% endfor %}
+                        </select>
+                    </form>
+
+                    <a href="{% url 'shop:cart_detail' %}" class="relative flex items-center space-x-2 bg-slate-100 hover:bg-slate-200/70 px-4 py-2 rounded-xl border border-slate-200/60 transition-colors text-sm font-bold text-slate-900">
+                        <span>{% translate "Cart" %}</span>
+                        <span class="bg-indigo-600 text-white text-xs px-2 py-0.5 rounded-full">
+                            {% if cart %}{{ cart|length }}{% else %}0{% endif %}
+                        </span>
+                    </a>
+
+                    {% if request.user.is_authenticated %}
+                        <div class="relative profile-dropdown">
+                            <button class="flex items-center justify-center h-10 w-10 rounded-full bg-indigo-600 border border-indigo-700 font-bold text-white text-sm shadow-md hover:scale-105 transition-all overflow-hidden focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                                {% if request.user.profile.profile_picture %}
+                                    <img src="{{ request.user.profile.profile_picture.url }}" alt="Avatar" class="h-full w-full object-cover">
+                                {% else %}
+                                    {{ request.user.username|slice:":2"|upper }}
+                                {% endif %}
+                            </button>
+
+                            <div class="dropdown-menu absolute right-0 mt-3 w-56 bg-white/95 backdrop-blur-xl border border-slate-200/80 rounded-2xl shadow-xl opacity-0 transform translate-y-2 scale-95 pointer-events-none transition-all duration-200 z-50 overflow-hidden">
+                                <div class="p-4 bg-slate-50 border-b border-slate-100 flex items-center space-x-3">
+                                    <div class="h-9 w-9 rounded-full bg-indigo-600 border border-slate-200 shadow-inner overflow-hidden flex items-center justify-center flex-shrink-0">
+                                        {% if request.user.profile.profile_picture %}
+                                            <img src="{{ request.user.profile.profile_picture.url }}" alt="Avatar" class="h-full w-full object-cover">
+                                        {% else %}
+                                            <span class="text-white text-xs font-bold">{{ request.user.username|slice:":2"|upper }}</span>
+                                        {% endif %}
+                                    </div>
+                                    <div class="truncate">
+                                        <p class="text-[10px] text-slate-400 font-black uppercase tracking-wider">{% translate "Logged In As" %}</p>
+                                        <p class="text-xs font-black text-slate-900 truncate">@{{ request.user.username }}</p>
+                                    </div>
+                                </div>
+
+                                <div class="p-1.5 space-y-0.5 text-slate-700">
+                                    {% if request.user.is_staff or request.user.is_superuser %}
+                                        <a href="{% url 'shop:create_product' %}" class="flex items-center px-3 py-2.5 text-sm font-bold text-indigo-600 hover:bg-slate-50 rounded-xl transition-colors">
+                                            {% translate "Add Product Portal" %}
+                                        </a>
+                                        <div class="h-[1px] bg-slate-100 my-1"></div>
+                                    {% endif %}
+
+                                    <a href="{% url 'shop:order_history' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-50 rounded-xl transition-colors">
+                                        {% translate "Purchased Orders" %}
+                                    </a>
+                                    <a href="{% url 'shop:payment_settings' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-50 rounded-xl transition-colors">
+                                        {% translate "Update Payment Method" %}
+                                    </a>
+                                    <a href="{% url 'shop:account_settings' %}" class="flex items-center px-3 py-2.5 text-sm font-semibold hover:bg-slate-50 rounded-xl transition-colors">
+                                        {% translate "Account Settings" %}
+                                    </a>
+                                </div>
+
+                                <div class="p-1.5 border-t border-slate-100 bg-slate-50">
+                                    <a href="{% url 'shop:logout' %}" class="flex items-center px-3 py-2.5 text-sm font-bold text-red-600 hover:bg-red-50 rounded-xl transition-colors">
+                                        {% translate "Log Out" %}
+                                    </a>
+                                </div>
+                            </div>
+                        </div>
+                    {% else %}
+                        <div class="flex items-center space-x-3">
+                            <a href="{% url 'shop:login' %}" class="text-sm font-bold text-slate-500 hover:text-slate-950 transition-colors">{% translate "Sign In" %}</a>
+                            <a href="{% url 'shop:register' %}" class="bg-slate-950 hover:bg-slate-900 text-white text-xs font-bold px-4 py-2.5 rounded-xl transition-colors shadow-sm">{% translate "Register" %}</a>
+                        </div>
+                    {% endif %}
+
+                </div>
+            </div>
+        </div>
+    </nav>
+
+    <main class="flex-grow w-full m-0 p-0">
+        {% if messages %}
+            <div class="px-6 mt-6 space-y-2">
+                {% for message in messages %}
+                    <div class="p-4 text-sm font-semibold rounded-xl border {% if message.tags == 'success' %}bg-emerald-50 text-emerald-700 border-emerald-200{% else %}bg-amber-50 text-amber-700 border-amber-200{% endif %} shadow-sm">
+                        {{ message }}
+                    </div>
+                {% endfor %}
+            </div>
+        {% endif %}
+
+        {% block content %}
+        {% endblock %}
+    </main>
+
+    <footer class="bg-white border-t border-slate-200/60 py-8 text-center text-xs text-slate-400 font-medium w-full">
+        <p>© 2026 TechVault Core Infrastructure App. Powered by Django, FastAPI, and Flask.</p>
+    </footer>
+
+    <script>
+        const socket = new WebSocket('ws://' + window.location.host + '/ws/live-updates/');
+
+        socket.onmessage = function(event) {
+            const data = JSON.parse(event.data);
+            alert("🔥 LIVE ALERT: A new premium product (" + data.message + ") has just been cataloged!");
+        };
+
+        socket.onclose = function(e) {
+            console.log('WebSocket pipeline closed cleanly.');
+        };
+    </script>
+</body>
+</html>

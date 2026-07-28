@@ -1,0 +1,42 @@
+{% extends "shop/base.html" %}
+
+{% block content %}
+<div class="max-w-2xl mx-auto my-8 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
+    <div class="text-center mb-8">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Customer Support Pipeline</h1>
+        <p class="text-sm text-gray-500">Have inquiries regarding warranty processing or product metrics? Open a secure support ticket instantly.</p>
+    </div>
+
+    <form class="space-y-4" onsubmit="event.preventDefault(); alert('Demo Notice: Support ticket created successfully!');">
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Full Name</label>
+                <input type="text" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+            <div>
+                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Associated Email</label>
+                <input type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+            </div>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Support Category</label>
+            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
+                <option>Hardware Performance Issue</option>
+                <option>Secure Checkout / Payment Verification Fault</option>
+                <option>Identity Document Submission Processing</option>
+                <option>General Store Logistics Query</option>
+            </select>
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Detailed Message Case</label>
+            <textarea rows="5" required placeholder="Outline specifications or symptoms of checkout disruption..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg text-sm transition-colors shadow-md shadow-indigo-100">
+            Submit Ticket Pipeline Case
+        </button>
+    </form>
+</div>
+{% endblock %}

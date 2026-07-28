@@ -1,0 +1,76 @@
+{% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}{{ product.name }} | TechVault{% endblock %}
+
+{% block content %}
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-12">
+
+    <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors">
+        &larr; {% translate "Back to Catalog" %}
+    </a>
+
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
+
+        <div class="lg:col-span-6 bg-white border border-slate-200/80 rounded-3xl p-8 flex items-center justify-center min-h-[420px] shadow-sm">
+            {% if product.image %}
+                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="max-h-96 w-auto object-contain hover:scale-105 transition-transform duration-300">
+            {% else %}
+                <div class="text-slate-300 font-bold text-sm">{% translate "No Image Available" %}</div>
+            {% endif %}
+        </div>
+
+        <div class="lg:col-span-6 space-y-6">
+            <div>
+                <span class="text-xs font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1 rounded-md tracking-wider">
+                    {{ product.brand }}
+                </span>
+                <h1 class="text-3xl font-black text-slate-950 tracking-tight mt-2">{{ product.name }}</h1>
+            </div>
+
+            <div class="text-3xl font-black text-emerald-600">
+                ${{ product.price }}
+            </div>
+
+            <div class="space-y-2 border-t border-b border-slate-100 py-4">
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Description" %}</h3>
+                <p class="text-slate-600 text-sm leading-relaxed">
+                    {{ product.description|default:_("No description provided for this model.") }}
+                </p>
+            </div>
+
+            {% if product.specs %}
+            <div class="space-y-3">
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Technical Specifications" %}</h3>
+                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/60">
+                    <dl class="divide-y divide-slate-200/60 text-xs">
+                        {% for key, value in product.specs.items %}
+                        <div class="py-2 flex justify-between gap-4">
+                            <dt class="font-bold text-slate-500 capitalize">{{ key }}</dt>
+                            <dd class="font-black text-slate-900 text-right">{{ value }}</dd>
+                        </div>
+                        {% endfor %}
+                    </dl>
+                </div>
+            </div>
+            {% else %}
+            <div class="space-y-2">
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Technical Specifications" %}</h3>
+                <p class="text-xs text-slate-400 italic">{% translate "No detailed specification parameters logged for this product." %}</p>
+            </div>
+            {% endif %}
+
+            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="pt-4">
+                {% csrf_token %}
+                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-indigo-200">
+                    + {% translate "Add to Cart" %}
+                </button>
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+{% endblock %}

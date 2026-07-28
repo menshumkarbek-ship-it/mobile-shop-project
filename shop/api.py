@@ -1,0 +1,32 @@
+from rest_framework import viewsets
+from rest_framework.response import Response
+from .models import Product, Category
+from .serializers import ProductSerializer, CategorySerializer
+
+
+class CategoryViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that allows categories to be viewed.
+    """
+    queryset = Category.objects.all()
+    serializer_class = CategorySerializer
+    lookup_field = 'slug'
+
+
+class ProductViewSet(viewsets.ReadOnlyModelViewSet):
+    """
+    API endpoint that serves available devices and supports brand filtering.
+    """
+    serializer_class = ProductSerializer
+    lookup_field = 'slug'
+
+    def get_queryset(self):
+        # Exclude sold products from the public API storefront
+        queryset = Product.objects.filter(is_sold=False)
+
+        # Enable dynamic filtering via URL query params: e.g., /api/products/?brand=Apple
+        brand = self.request.query_params.get('brand')
+        if brand is not None:
+            queryset = queryset.filter(brand__iexact=brand)
+
+        return queryset

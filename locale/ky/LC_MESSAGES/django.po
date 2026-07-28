@@ -1,0 +1,263 @@
+# SOME DESCRIPTIVE TITLE.
+# Copyright (C) YEAR THE PACKAGE'S COPYRIGHT HOLDER
+# This file is distributed under the same license as the PACKAGE package.
+# FIRST AUTHOR <EMAIL@ADDRESS>, YEAR.
+#
+msgid ""
+msgstr ""
+"Project-Id-Version: PACKAGE VERSION\n"
+"Report-Msgid-Bugs-To: \n"
+"POT-Creation-Date: 2026-07-26 16:42+0600\n"
+"PO-Revision-Date: YEAR-MO-DA HO:MI+ZONE\n"
+"Last-Translator: FULL NAME <EMAIL@ADDRESS>\n"
+"Language-Team: LANGUAGE <LL@li.org>\n"
+"Language: ky\n"
+"MIME-Version: 1.0\n"
+"Content-Type: text/plain; charset=UTF-8\n"
+"Content-Transfer-Encoding: 8bit\n"
+"Plural-Forms: nplurals=1; plural=0;\n"
+
+#: .\config\settings.py:92
+msgid "English"
+msgstr "Англисче"
+
+#: .\config\settings.py:93
+msgid "Russian"
+msgstr "Орусча"
+
+#: .\config\settings.py:94
+msgid "Kyrgyz"
+msgstr "Кыргызча"
+
+#: .\shop\templates\shop\base.html:7
+msgid "Premium Electronics"
+msgstr "Премиум Электроника"
+
+#: .\shop\templates\shop\base.html:44
+msgid "Search premium electronics..."
+msgstr "Электрониканы издөө..."
+
+#: .\shop\templates\shop\base.html:60
+msgid "Home"
+msgstr "Башкы баракча"
+
+#: .\shop\templates\shop\base.html:64 .\shop\templates\shop\cart\detail.html:5
+#: .\shop\templates\shop\product\list.html:5
+msgid "Catalog"
+msgstr "Каталог"
+
+#: .\shop\templates\shop\base.html:68
+msgid "About Us"
+msgstr "Биз жөнүндө"
+
+#: .\shop\templates\shop\base.html:72
+msgid "Support"
+msgstr "Колдоо"
+
+#: .\shop\templates\shop\base.html:94
+#: .\shop\templates\shop\product\list.html:95
+#: .\shop\templates\shop\product\list.html:128
+#: .\shop\templates\shop\product\list.html:161
+#: .\shop\templates\shop\product\list.html:195
+msgid "Cart"
+msgstr "Корзина"
+
+#: .\shop\templates\shop\base.html:120
+msgid "Logged In As"
+msgstr "Кирген колдонуучу:"
+
+#: .\shop\templates\shop\base.html:128
+msgid "Add Product Portal"
+msgstr "Товар кошуу"
+
+#: .\shop\templates\shop\base.html:134
+msgid "Purchased Orders"
+msgstr "Буйрутмалар"
+
+#: .\shop\templates\shop\base.html:137
+msgid "Update Payment Method"
+msgstr "Төлөм ыкмалары"
+
+#: .\shop\templates\shop\base.html:140
+msgid "Account Settings"
+msgstr "Жөндөөлөр"
+
+#: .\shop\templates\shop\base.html:146
+msgid "Log Out"
+msgstr "Чыгуу"
+
+#: .\shop\templates\shop\base.html:153
+msgid "Sign In"
+msgstr "Кирүү"
+
+#: .\shop\templates\shop\base.html:154
+msgid "Register"
+msgstr "Катталуу"
+
+#: .\shop\templates\shop\cart\detail.html:14
+#, fuzzy
+#| msgid "Add Product Portal"
+msgid "Product Catalog"
+msgstr "Товар кошуу"
+
+#: .\shop\templates\shop\cart\detail.html:16
+msgid "Explore available devices, filter specs, and build your cart."
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:22
+msgid "Categories"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:25
+#, fuzzy
+#| msgid "Add Product Portal"
+msgid "All Products"
+msgstr "Товар кошуу"
+
+#: .\shop\templates\shop\cart\detail.html:36
+msgid "Brands"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:38
+msgid "All"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:76
+#: .\shop\templates\shop\cart\detail.html:96
+msgid "Specs"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:83
+#: .\shop\templates\shop\product\detail.html:67
+msgid "Add to Cart"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:112
+#: .\shop\templates\shop\product\detail.html:60
+msgid "No detailed specification parameters logged for this product."
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:118
+msgid "Close Specs"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:126
+msgid "No catalog items available matching your filter criteria."
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:136
+msgid "Previous Page"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:142
+#: .\shop\templates\shop\product\list.html:221
+msgid "Page"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:142
+#: .\shop\templates\shop\product\list.html:221
+msgid "of"
+msgstr ""
+
+#: .\shop\templates\shop\cart\detail.html:148
+msgid "Next Page"
+msgstr ""
+
+#: .\shop\templates\shop\product\detail.html:11
+#, fuzzy
+#| msgid "Catalog"
+msgid "Back to Catalog"
+msgstr "Каталог"
+
+#: .\shop\templates\shop\product\detail.html:20
+#: .\shop\templates\shop\product\list.html:85
+#: .\shop\templates\shop\product\list.html:118
+#: .\shop\templates\shop\product\list.html:151
+#: .\shop\templates\shop\product\list.html:185
+msgid "No Image Available"
+msgstr ""
+
+#: .\shop\templates\shop\product\detail.html:37
+msgid "Description"
+msgstr ""
+
+#: .\shop\templates\shop\product\detail.html:39
+msgid "No description provided for this model."
+msgstr ""
+
+#: .\shop\templates\shop\product\detail.html:45
+#: .\shop\templates\shop\product\detail.html:59
+msgid "Technical Specifications"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:16
+msgid "Device Type"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:19
+msgid "All Gadget Types"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:30
+msgid "Brand / Model"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:33
+msgid "All Brands"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:44
+msgid "Min Price ($)"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:51
+msgid "Max Price ($)"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:58
+msgid "Filter"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:75
+msgid "Phones"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:76
+msgid "View All Phones"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:108
+msgid "Laptops"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:109
+msgid "View All Laptops"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:141
+msgid "Tablets"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:142
+msgid "View All Tablets"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:174
+msgid "Filtered Items"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:175
+msgid "Items Found"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:202
+msgid "No products match your filter parameters."
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:215
+msgid "Previous"
+msgstr ""
+
+#: .\shop\templates\shop\product\list.html:228
+msgid "Next"
+msgstr ""

@@ -1,0 +1,35 @@
+{% extends "shop/base.html" %}
+
+{% block content %}
+<div class="max-w-md mx-auto bg-white border border-gray-200 rounded-2xl p-8 shadow-sm my-12">
+    <h2 class="text-2xl font-extrabold text-gray-900 text-center mb-2">Welcome Back</h2>
+    <p class="text-xs text-gray-400 text-center mb-6">Sign in to access your dashboard and secure checkout privileges.</p>
+
+    {% if messages %}
+        {% for message in messages %}
+            <div class="bg-red-50 text-red-700 text-sm p-3 rounded-lg mb-4 font-medium">{{ message }}</div>
+        {% endfor %}
+    {% endif %}
+
+    <form method="POST" class="space-y-4">
+        {% csrf_token %}
+        <div>
+            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Username</label>
+            <input type="text" name="username" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <div>
+            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
+            <input type="password" name="password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        </div>
+
+        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-2.5 rounded-lg text-sm mt-4 transition-colors">
+            Sign In Securely
+        </button>
+    </form>
+    
+    <div class="mt-6 text-center text-xs text-gray-500">
+        Don't have an account? <a href="{% url 'shop:register' %}" class="text-indigo-600 font-bold hover:underline">Register here</a>
+    </div>
+</div>
+{% endblock %}
