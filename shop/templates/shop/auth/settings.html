@@ -34,7 +34,16 @@
                 <p class="text-xs text-slate-400">{% translate "Manage your core TechVault credentials and live profile parameters." %}</p>
             </div>
 
-            <form method="POST" enctype="multipart/form-data" class="space-y-6">
+            {% if messages %}
+                {% for message in messages %}
+                    <div class="p-4 text-xs font-semibold rounded-xl border {% if message.tags == 'success' %}bg-emerald-950/60 text-emerald-400 border-emerald-800/80{% else %}bg-amber-950/60 text-amber-400 border-amber-800/80{% endif %} shadow-sm flex items-center gap-2">
+                        <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+                        <span>{{ message }}</span>
+                    </div>
+                {% endfor %}
+            {% endif %}
+
+            <form method="POST" enctype="multipart/form-data" action="{% url 'shop:account_settings' %}" class="space-y-6">
                 {% csrf_token %}
 
                 <!-- Avatar Upload Box -->
@@ -79,10 +88,16 @@
                     {{ form.email }}
                 </div>
 
-                <!-- Primary Phone Number -->
+                <!-- Phone Number -->
                 <div>
                     <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">{% translate "Primary Phone Number" %}</label>
                     {{ form.phone_number }}
+                </div>
+
+                <!-- Passport Number -->
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">{% translate "Kyrgyz Passport Number" %}</label>
+                    {{ form.passport_number }}
                 </div>
 
                 <!-- Submit Button -->

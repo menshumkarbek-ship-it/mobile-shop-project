@@ -7,7 +7,7 @@
 {% block content %}
 <div class="max-w-5xl mx-auto px-6 py-12 min-h-[80vh] flex flex-col md:flex-row gap-8 text-slate-100">
 
-    <!-- 🧭 Left Navigation Tab Sidebar Panel -->
+    <!-- Left Navigation Sidebar -->
     <aside class="w-full md:w-64 space-y-2 flex-shrink-0">
         <a href="{% url 'shop:account_settings' %}" class="block px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-sm font-semibold rounded-xl transition-all">
             <i class="fa-solid fa-user-gear mr-2 text-xs"></i> {% translate "Profile Settings" %}
@@ -20,16 +20,15 @@
         </a>
     </aside>
 
-    <!-- 💳 Main Payment Settings Center Panel -->
+    <!-- Main Payment Settings Panel -->
     <section class="flex-grow bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-8">
         <div class="mb-8 pb-4 border-b border-slate-800">
             <h1 class="text-2xl font-black text-white tracking-tight">{% translate "Payment Settings" %}</h1>
             <p class="text-sm text-slate-400 mt-1">{% translate "Manage your digital wallets and primary electronic payment preferences." %}</p>
         </div>
 
-        <!-- PRESET VISUAL WALLET CARD COMPONENT -->
+        <!-- Visual Wallet Card -->
         <div class="mb-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
-            <!-- Active Card -->
             <div class="bg-gradient-to-br from-indigo-600 to-purple-800 rounded-2xl p-6 text-white shadow-xl shadow-indigo-900/30 relative overflow-hidden h-44 flex flex-col justify-between border border-indigo-500/30">
                 <div class="flex justify-between items-start relative z-10">
                     <div>
@@ -49,12 +48,10 @@
                     </div>
                 </div>
 
-                <!-- Background Geometric Accents -->
                 <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
                 <div class="absolute -left-6 -top-6 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
             </div>
 
-            <!-- Add New Method -->
             <div class="border-2 border-dashed border-slate-700 bg-slate-800/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center group hover:border-indigo-500 hover:bg-slate-800/60 transition-all cursor-pointer h-44">
                 <span class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-xl group-hover:bg-indigo-500/20 text-slate-400 group-hover:text-indigo-400 transition-colors mb-3 border border-slate-700 group-hover:border-indigo-500/30">
                     <i class="fa-solid fa-plus text-lg"></i>
@@ -64,9 +61,7 @@
             </div>
         </div>
 
-        <!-- 🔒 SECURE TRANSACTION METRICS MOCK FORM -->
         <form class="space-y-5" onsubmit="event.preventDefault(); alert('{% translate "Security Clearance Success: Payment configurations simulated and linked to backend account securely!" %}');">
-
             <div class="bg-amber-950/40 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-4 mb-2">
                 <div class="mt-0.5 text-amber-500 bg-amber-500/10 p-2 rounded-lg">
                     <i class="fa-solid fa-shield-halved text-lg"></i>
@@ -93,7 +88,7 @@
                         {% translate "Registered Verification ID" %}
                     </label>
                     <input type="text" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-xs font-bold text-slate-500 cursor-not-allowed focus:outline-none"
-                           value="{{ request.user.userprofile.passport_number }}" readonly>
+                           value="{{ request.user.profile.passport_number }}" readonly>
                 </div>
             </div>
 
