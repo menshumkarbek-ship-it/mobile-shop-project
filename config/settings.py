@@ -1,14 +1,21 @@
 import os
 from pathlib import Path
 from django.utils.translation import gettext_lazy as _  # 🌐 Translation Engine
+from dotenv import load_dotenv
+
+# Load environment variables from .env file
+load_dotenv()
 
 BASE_DIR = Path(__file__).resolve().parent.parent
 
-SECRET_KEY = 'django-insecure-s56+j*3^rrsy2==$4mjw#e-^%mqtc&&jab^df*kt5uge9q6k^*'
+# Security Settings loaded from .env
+SECRET_KEY = os.getenv('SECRET_KEY')
 
-DEBUG = True
+# Convert DEBUG string from .env to boolean (default to False if not set)
+DEBUG = os.getenv('DEBUG', 'False') == 'True'
 
-ALLOWED_HOSTS = ['*']
+# Parse comma-separated string from .env into a list
+ALLOWED_HOSTS = os.getenv('ALLOWED_HOSTS', '').split(',')
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -26,7 +33,7 @@ INSTALLED_APPS = [
 MIDDLEWARE = [
     'django.middleware.security.SecurityMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'django.middleware.locale.LocaleMiddleware',  # 🌐 Multi-language engine (MUST be after SessionMiddleware)
+    'django.middleware.locale.LocaleMiddleware',  # 🌐 Multi-language engine
     'django.middleware.common.CommonMiddleware',
     'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
@@ -46,7 +53,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
-                'django.template.context_processors.i18n',  # 🌐 Exposes language context to templates
+                'django.template.context_processors.i18n',  # 🌐 Language context
             ],
         },
     },
@@ -56,14 +63,15 @@ WSGI_APPLICATION = 'config.wsgi.application'
 # 🛰️ Enable the asynchronous server gateway interface routing matrix
 ASGI_APPLICATION = 'config.asgi.application'
 
+# Database configuration loaded dynamically from .env
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.postgresql',
-        'NAME': 'mobile_shop_db',
-        'USER': 'postgres',
-        'PASSWORD': '20041807',  # Update with your password!
-        'HOST': 'localhost',
-        'PORT': '5432',
+        'ENGINE': os.getenv('DB_ENGINE', 'django.db.backends.postgresql'),
+        'NAME': os.getenv('DB_NAME', 'mobile_shop_db'),
+        'USER': os.getenv('DB_USER', 'postgres'),
+        'PASSWORD': os.getenv('DB_PASSWORD', ''),
+        'HOST': os.getenv('DB_HOST', 'localhost'),
+        'PORT': os.getenv('DB_PORT', '5432'),
     }
 }
 
@@ -149,8 +157,8 @@ CACHES = {
 # ⚡ CELERY & REDIS TASK QUEUE SETTINGS
 # ==========================================
 
-CELERY_BROKER_URL = 'redis://localhost:6379/0'
-CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+CELERY_BROKER_URL = os.getenv('CELERY_BROKER_URL', 'redis://localhost:6379/0')
+CELERY_RESULT_BACKEND = os.getenv('CELERY_RESULT_BACKEND', 'redis://localhost:6379/0')
 
 # Force Redis driver to use RESP2 protocol to prevent HELLO command errors
 CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol_version': 2}
