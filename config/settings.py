@@ -113,7 +113,6 @@ USE_I18N = True
 
 USE_TZ = True
 
-
 # ==========================================
 # 📁 MEDIA & STATIC FILES
 # ==========================================
@@ -128,7 +127,6 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'media')
 
 # Session key for the shopping cart
 CART_SESSION_ID = 'techvault_cart'
-
 
 # ==========================================
 # 📑 DRF & API DOCUMENTATION SETTINGS
@@ -165,3 +163,23 @@ CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol_version': 2}
 
 # Default primary key field type
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# ==========================================
+# 🔒 HTTPS & PRODUCTION SECURITY SETTINGS
+# ==========================================
+
+if not DEBUG:
+    # Force HTTP requests to redirect to HTTPS
+    SECURE_SSL_REDIRECT = True
+
+    # Send cookies over HTTPS only
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+
+    # HTTP Strict Transport Security (HSTS)
+    SECURE_HSTS_SECONDS = 31536000  # 1 year
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True
+
+    # Inform Django it is behind a reverse proxy (Render / Vercel router)
+    SECURE_PROXY_SSL_HEADER = ('HTTP_X_FORWARDED_PROTO', 'https')
