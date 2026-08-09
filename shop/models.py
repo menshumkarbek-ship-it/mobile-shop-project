@@ -3,26 +3,75 @@ from PIL import Image, ImageOps
 from django.conf import settings
 from django.contrib.auth.models import User
 from django.core.files.base import ContentFile
+from django.core.validators import RegexValidator
 from django.db import models
 
 
 # ==========================================
-# 👤 USER PROFILE EXTENSION
+# 👤 USER PROFILE & KYC EXTENSION
 # ==========================================
 
 class UserProfile(models.Model):
-    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
-    phone_number = models.CharField(max_length=20, blank=True, null=True)
-    passport_number = models.CharField(
-        max_length=50,
-        unique=True,
-        help_text="Required for customer identity verification"
+    VERIFICATION_METHOD_CHOICES = (
+        ('email', 'Email Verification'),
+        ('phone', 'Phone Verification'),
     )
+
+    KYC_STATUS_CHOICES = (
+        ('pending', 'Pending Verification'),
+        ('verified', 'Verified'),
+        ('rejected', 'Rejected'),
+    )
+
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+
+    # Valid Kyrgyz Passport (Format: ID1234567 or AN1234567)
+    passport_number = models.CharField(
+        max_length=9,
+        unique=True,
+        validators=[
+            RegexValidator(
+                regex=r'^(ID|AN)\d{7}$',
+                message="Passport must start with ID or AN followed by 7 digits (e.g., ID1234567)."
+            )
+        ],
+        help_text="Required Kyrgyz Passport ID (e.g. ID1234567)"
+    )
+
+    # Preferred Verification Route
+    verification_method = models.CharField(
+        max_length=10,
+        choices=VERIFICATION_METHOD_CHOICES,
+        default='email'
+    )
+
+    # Phone Verification (+996 format)
+    phone_number = models.CharField(
+        max_length=13,
+        blank=True,
+        null=True,
+        validators=[
+            RegexValidator(
+                regex=r'^\+996\d{9}$',
+                message="Phone number must be in Kyrgyz format: +996XXXXXXXXX"
+            )
+        ]
+    )
+    phone_otp = models.CharField(max_length=6, blank=True, null=True)
+    is_phone_verified = models.BooleanField(default=False)
+
+    # Email Verification
+    email_otp = models.CharField(max_length=6, blank=True, null=True)
+    is_email_verified = models.BooleanField(default=False)
+
+    # KYC Verification Status
+    kyc_status = models.CharField(max_length=10, choices=KYC_STATUS_CHOICES, default='pending')
+
     registration_date = models.DateTimeField(auto_now_add=True)
     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
 
     def __str__(self):
-        return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
+        return f"{self.user.first_name} {self.user.last_name} ({self.passport_number})"
 
 
 # ==========================================
@@ -74,33 +123,24 @@ class Product(models.Model):
         return f"[{status}] {self.brand} - {self.name}"
 
     def save(self, *args, **kwargs):
-        """
-        📸 AUTOMATED WHITE BACKGROUND REMOVAL & 1:1 SQUARE CROP
-        Scans uploaded image pixels, turns solid white backgrounds transparent, and center-crops to 700x700.
-        """
         if self.image and hasattr(self.image, 'file'):
             try:
                 img = Image.open(self.image)
                 if img.mode != 'RGBA':
                     img = img.convert('RGBA')
 
-                # 🪄 AUTOMATICALLY STRIP SOLID WHITE BACKGROUNDS
                 datas = img.getdata()
                 new_data = []
                 for item in datas:
-                    # If pixel is pure white or very light gray (R, G, B > 240), make it transparent
                     if item[0] > 240 and item[1] > 240 and item[2] > 240:
                         new_data.append((255, 255, 255, 0))
                     else:
                         new_data.append(item)
 
                 img.putdata(new_data)
-
-                # Target 1:1 Square Dimensions (700x700) with center crop
                 canvas_size = (700, 700)
                 cropped_img = ImageOps.fit(img, canvas_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
 
-                # Save processed image to memory buffer
                 buffer = BytesIO()
                 cropped_img.save(buffer, format='PNG', quality=90)
                 buffer.seek(0)

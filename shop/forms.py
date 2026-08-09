@@ -1,12 +1,91 @@
+import re
 from django import forms
 from django.contrib.auth.models import User
 from django.utils.text import slugify
 from .models import UserProfile, Product, Category
 
 
-# ==========================================
-# 👤 USER ACCOUNT & PROFILE SETTINGS FORM
-# ==========================================
+class CustomerRegistrationForm(forms.ModelForm):
+    username = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'Username'
+        })
+    )
+    first_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'First Name'
+        })
+    )
+    last_name = forms.CharField(
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'Last Name'
+        })
+    )
+    password = forms.CharField(
+        widget=forms.PasswordInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'Password'
+        })
+    )
+    passport_number = forms.CharField(
+        max_length=9,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'ID1234567 or AN1234567'
+        })
+    )
+    verification_method = forms.ChoiceField(
+        choices=UserProfile.VERIFICATION_METHOD_CHOICES,
+        widget=forms.Select(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 focus:outline-none focus:ring-2 focus:ring-indigo-500/50 cursor-pointer'
+        })
+    )
+    email = forms.EmailField(
+        required=False,
+        widget=forms.EmailInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': 'name@example.com'
+        })
+    )
+    phone_number = forms.CharField(
+        required=False,
+        widget=forms.TextInput(attrs={
+            'class': 'w-full bg-slate-800/80 border border-slate-700/80 rounded-2xl px-4 py-3 text-sm text-slate-100 placeholder-slate-400 focus:outline-none focus:ring-2 focus:ring-indigo-500/50',
+            'placeholder': '+996XXXXXXXXX'
+        })
+    )
+
+    class Meta:
+        model = User
+        fields = ['username', 'first_name', 'last_name', 'password']
+
+    def clean_passport_number(self):
+        passport = self.cleaned_data.get('passport_number', '').upper()
+        if not re.match(r'^(ID|AN)\d{7}$', passport):
+            raise forms.ValidationError("Invalid Kyrgyz passport format. Must be ID or AN followed by 7 digits.")
+        if UserProfile.objects.filter(passport_number=passport).exists():
+            raise forms.ValidationError("This passport number is already registered.")
+        return passport
+
+    def clean(self):
+        cleaned_data = super().clean()
+        method = cleaned_data.get('verification_method')
+        email = cleaned_data.get('email')
+        phone = cleaned_data.get('phone_number')
+
+        if method == 'email' and not email:
+            self.add_error('email', 'Email address is required when selecting Email Verification.')
+        elif method == 'phone':
+            if not phone:
+                self.add_error('phone_number', 'Phone number is required when selecting Phone Verification.')
+            elif not re.match(r'^\+996\d{9}$', phone):
+                self.add_error('phone_number', 'Invalid Kyrgyz phone number format. Must start with +996 followed by 9 digits.')
+
+        return cleaned_data
+
 
 class UserSettingsForm(forms.ModelForm):
     phone_number = forms.CharField(
@@ -69,7 +148,6 @@ class UserSettingsForm(forms.ModelForm):
             self.profile_instance.phone_number = self.cleaned_data.get('phone_number')
             self.profile_instance.passport_number = self.cleaned_data.get('passport_number')
 
-            # 🛠️ Fixed profile picture file extraction from request.FILES / cleaned_data
             uploaded_picture = self.cleaned_data.get('profile_picture')
             if uploaded_picture:
                 self.profile_instance.profile_picture = uploaded_picture
@@ -77,10 +155,6 @@ class UserSettingsForm(forms.ModelForm):
             self.profile_instance.save()
         return user
 
-
-# ==========================================
-# 📦 PRODUCT CREATION & UPDATE FORM
-# ==========================================
 
 class ProductCreateForm(forms.ModelForm):
     slug = forms.CharField(

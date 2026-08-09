@@ -1,4 +1,5 @@
 import os
+import random
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -7,40 +8,30 @@ from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib.auth.models import User
 from django.contrib.auth.forms import AuthenticationForm, PasswordChangeForm
 from django.views.decorators.http import require_POST
-from django.core.cache import cache  # 🏎️ Redis Core Caching Engine
-from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger  # 📏 Pagination Engine
+from django.core.cache import cache
+from django.core.mail import send_mail
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.db.models import Q
 
-# Explicit model and custom form components
 from .models import Product, Category, Order, OrderItem, UserProfile
-from .forms import UserSettingsForm, ProductCreateForm
+from .forms import UserSettingsForm, ProductCreateForm, CustomerRegistrationForm
 from .cart import Cart
 
-# Dynamic Microservice Host Resolution (Supports both Localhost and Docker Compose)
 FLASK_PDF_SERVICE_URL = os.getenv('FLASK_PDF_SERVICE_URL', 'http://127.0.0.1:8002')
 
 
 # ==========================================
-# 🏠 HOME & LANDING PAGE CONTROLLER
+# 🏠 HOME PAGE CONTROLLER
 # ==========================================
 
 def home_page(request):
-    """
-    Renders the custom Home Page with:
-    - Automatic Top Pick Hero Item (Latest unsold flagship product)
-    - Featured Laptop and Tablet promotional slide items
-    - Separated, isolated Top Picks Sections for Phones, Laptops, and Tablets
-    """
-    # 🏎️ Redis cached categories
     categories = cache.get('global_store_categories')
     if not categories:
         categories = Category.objects.all()
         cache.set('global_store_categories', categories, 60 * 15)
 
-    # Automatic Top Pick Hero (Optimized query with select_related)
     hero_product = Product.objects.filter(is_sold=False).select_related('category').order_by('-id').first()
 
-    # 💻 Grab the latest available laptop and tablet for the promotional slides
     laptop_promo = Product.objects.filter(
         is_sold=False,
         category__name__icontains='laptop'
@@ -51,12 +42,10 @@ def home_page(request):
         category__name__icontains='tablet'
     ).select_related('category').order_by('-id').first()
 
-    # 📱 Strictly Isolated Top Picks Containers for Phones, Laptops, and Tablets
     phones_top_picks = Product.objects.filter(
         is_sold=False
     ).filter(
-        Q(category__slug__icontains='phone') | Q(category__name__icontains='phone') | Q(
-            category__name__icontains='mobile')
+        Q(category__slug__icontains='phone') | Q(category__name__icontains='phone') | Q(category__name__icontains='mobile')
     ).select_related('category').order_by('-id')[:5]
 
     laptops_top_picks = Product.objects.filter(
@@ -68,8 +57,7 @@ def home_page(request):
     tablets_top_picks = Product.objects.filter(
         is_sold=False
     ).filter(
-        Q(category__slug__icontains='tablet') | Q(category__name__icontains='tablet') | Q(
-            category__name__icontains='ipad') | Q(category__name__icontains='pad')
+        Q(category__slug__icontains='tablet') | Q(category__name__icontains='tablet') | Q(category__name__icontains='ipad') | Q(category__name__icontains='pad')
     ).select_related('category').order_by('-id')[:5]
 
     context = {
@@ -85,23 +73,19 @@ def home_page(request):
 
 
 # ==========================================
-# 🏪 CATALOG & INVENTORY CONTROLLERS
+# 🏪 CATALOG CONTROLLERS
 # ==========================================
 
 def product_list(request, category_slug=None):
     category = None
-
-    # 🏎️ Redis cached categories
     categories = cache.get('global_store_categories')
     if not categories:
         categories = Category.objects.all()
         cache.set('global_store_categories', categories, 60 * 15)
 
     products_list = Product.objects.filter(is_sold=False).select_related('category').order_by('-id')
-
     type_filter = request.GET.get('type') or category_slug
 
-    # 🛠️ Map plural navigation aliases to database category search terms securely
     if type_filter == 'phones':
         type_filter = 'phone'
     elif type_filter == 'laptops':
@@ -156,12 +140,9 @@ def product_list(request, category_slug=None):
     grouped_sections = {}
     if not has_active_filters:
         grouped_sections = {
-            'phones': Product.objects.filter(is_sold=False, category__name__icontains='phone').select_related(
-                'category').order_by('-id')[:5],
-            'laptops': Product.objects.filter(is_sold=False, category__name__icontains='laptop').select_related(
-                'category').order_by('-id')[:5],
-            'tablets': Product.objects.filter(is_sold=False, category__name__icontains='tablet').select_related(
-                'category').order_by('-id')[:5],
+            'phones': Product.objects.filter(is_sold=False, category__name__icontains='phone').select_related('category').order_by('-id')[:5],
+            'laptops': Product.objects.filter(is_sold=False, category__name__icontains='laptop').select_related('category').order_by('-id')[:5],
+            'tablets': Product.objects.filter(is_sold=False, category__name__icontains='tablet').select_related('category').order_by('-id')[:5],
         }
 
     context = {
@@ -186,53 +167,82 @@ def product_detail(request, product_slug):
 
 
 def product_specs(request, product_slug):
-    """
-    Renders a dedicated standalone specifications page for a specific product.
-    """
     product = get_object_or_404(Product.objects.select_related('category'), slug=product_slug, is_sold=False)
     return render(request, 'shop/product/specs.html', {'product': product})
 
 
 # ==========================================
-# 🔐 AUTHENTICATION & REGISTRATION CUSTOMERS
+# 🔐 AUTHENTICATION & CUSTOMER REGISTRATION
 # ==========================================
 
 def register_customer(request):
     if request.method == 'POST':
-        username = request.POST.get('username')
-        email = request.POST.get('email')
-        password = request.POST.get('password')
-        first_name = request.POST.get('first_name')
-        last_name = request.POST.get('last_name')
-        phone = request.POST.get('phone_number')
-        passport = request.POST.get('passport_number')
+        form = CustomerRegistrationForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.email = form.cleaned_data.get('email', '')
+            user.save()
 
-        if User.objects.filter(username=username).exists():
-            messages.error(request, "Username is already taken.")
-            return redirect('shop:register')
-        if UserProfile.objects.filter(passport_number=passport).exists():
-            messages.error(request, "This passport is already registered to another account.")
-            return redirect('shop:register')
+            method = form.cleaned_data['verification_method']
+            otp_code = str(random.randint(100000, 999999))
 
-        new_user = User.objects.create_user(
-            username=username,
-            email=email,
-            password=password,
-            first_name=first_name,
-            last_name=last_name
-        )
+            profile = UserProfile.objects.create(
+                user=user,
+                passport_number=form.cleaned_data['passport_number'],
+                verification_method=method,
+                phone_number=form.cleaned_data.get('phone_number', '')
+            )
 
-        UserProfile.objects.create(
-            user=new_user,
-            phone_number=phone,
-            passport_number=passport
-        )
+            if method == 'email':
+                profile.email_otp = otp_code
+                profile.save()
+                send_mail(
+                    subject='TechVault Verification Code',
+                    message=f'Your activation code is: {otp_code}',
+                    from_email='noreply@techvault.com',
+                    recipient_list=[user.email],
+                    fail_silently=True,
+                )
+            else:
+                profile.phone_otp = otp_code
+                profile.save()
+                # SMS integration placeholder
 
-        login(request, new_user)
-        messages.success(request, f"Welcome to TechVault, {first_name}!")
-        return redirect('shop:home')
+            login(request, user)
+            messages.info(request, f"Please verify your code sent via {method}.")
+            return redirect('shop:verify_otp')
+        else:
+            messages.error(request, "Please correct the registration errors below.")
+    else:
+        form = CustomerRegistrationForm()
 
-    return render(request, 'shop/auth/register.html')
+    return render(request, 'shop/auth/register.html', {'form': form})
+
+
+@login_required
+def verify_otp(request):
+    profile, _ = UserProfile.objects.get_or_create(user=request.user)
+
+    if request.method == 'POST':
+        entered_code = request.POST.get('otp_code', '').strip()
+
+        if profile.verification_method == 'email' and entered_code == profile.email_otp:
+            profile.is_email_verified = True
+            profile.kyc_status = 'verified'
+            profile.save()
+            messages.success(request, "Email verified successfully! Account fully activated.")
+            return redirect('shop:home')
+        elif profile.verification_method == 'phone' and entered_code == profile.phone_otp:
+            profile.is_phone_verified = True
+            profile.kyc_status = 'verified'
+            profile.save()
+            messages.success(request, "Phone verified successfully! Account fully activated.")
+            return redirect('shop:home')
+        else:
+            messages.error(request, "Invalid verification code. Please check and try again.")
+
+    return render(request, 'shop/auth/verify_otp.html', {'profile': profile})
 
 
 def login_customer(request):
@@ -288,7 +298,7 @@ def cart_detail(request):
 
 
 # ==========================================
-# 💎 STRATEGIC PROFILE SETTINGS INFRASTRUCTURE
+# 💎 PROFILE SETTINGS
 # ==========================================
 
 @login_required
@@ -296,7 +306,6 @@ def account_settings(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
-        # 🛠️ Passing request.FILES ensures profile pictures and binary uploads are processed correctly
         form = UserSettingsForm(request.POST, request.FILES, instance=request.user, profile_instance=profile)
         if form.is_valid():
             updated_user = form.save()
@@ -333,7 +342,7 @@ def payment_method_settings(request):
 
 
 # ==========================================
-# 🧾 TRANSACTIONAL CHECKOUT & HISTORY ORDERS
+# 🧾 CHECKOUT & ORDERS
 # ==========================================
 
 @login_required
@@ -371,11 +380,9 @@ def checkout_order(request):
         if response.status_code == 201:
             messages.success(request, f"Success! Order #{order.id} processed. Your background PDF receipt is ready!")
         else:
-            messages.warning(request,
-                             f"Order #{order.id} processed, but background invoice worker returned status code {response.status_code}.")
+            messages.warning(request, f"Order #{order.id} processed, but background invoice worker returned status code {response.status_code}.")
     except requests.exceptions.RequestException:
-        messages.warning(request,
-                         f"Order #{order.id} logged securely, but the PDF invoice microservice is currently offline.")
+        messages.warning(request, f"Order #{order.id} logged securely, but the PDF invoice microservice is currently offline.")
 
     return redirect('shop:product_list')
 
@@ -387,7 +394,7 @@ def order_history(request):
 
 
 # ==========================================
-# 📄 AUXILIARY STATIC PAGES
+# 📄 AUXILIARY PAGES
 # ==========================================
 
 def about_us(request):
@@ -435,16 +442,9 @@ def create_product(request, product_id=None):
     return render(request, 'shop/product/create.html', context)
 
 
-# ==========================================
-# 🛡️ ADMINISTRATOR AUDIT LOGGING
-# ==========================================
-
 @login_required
 @user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
 def admin_purchase_history(request):
-    """
-    Renders a clean, one-line audit log of all system-wide customer purchases for administrators.
-    """
     all_purchases = OrderItem.objects.select_related('order__user', 'product').order_by('-order__created_at')
 
     paginator = Paginator(all_purchases, 25)
