@@ -8,7 +8,7 @@ SECRET_KEY = 'django-insecure-s56+j*3^rrsy2==$4mjw#e-^%mqtc&&jab^df*kt5uge9q6k^*
 
 DEBUG = True
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ['*']
 
 INSTALLED_APPS = [
     'jazzmin',
@@ -144,3 +144,16 @@ CACHES = {
         'LOCATION': 'techvault_cache_table',
     }
 }
+
+# ==========================================
+# ⚡ CELERY & REDIS TASK QUEUE SETTINGS
+# ==========================================
+
+CELERY_BROKER_URL = 'redis://localhost:6379/0'
+CELERY_RESULT_BACKEND = 'redis://localhost:6379/0'
+
+# Force Redis driver to use RESP2 protocol to prevent HELLO command errors
+CELERY_BROKER_TRANSPORT_OPTIONS = {'protocol_version': 2}
+
+# Default primary key field type
+DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'

@@ -1,42 +1,118 @@
 {% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}TechVault | {% translate "Contact Support" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-2xl mx-auto my-8 bg-white border border-gray-200 rounded-2xl p-8 shadow-sm">
-    <div class="text-center mb-8">
-        <h1 class="text-3xl font-extrabold text-gray-900 mb-2">Customer Support Pipeline</h1>
-        <p class="text-sm text-gray-500">Have inquiries regarding warranty processing or product metrics? Open a secure support ticket instantly.</p>
+<div class="max-w-4xl mx-auto px-6 py-12 min-h-screen text-slate-100">
+    <div class="grid grid-cols-1 lg:grid-cols-12 gap-8 items-start">
+
+        <!-- Left Column: Support Info & Direct Channels -->
+        <div class="lg:col-span-5 space-y-6">
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 shadow-xl space-y-6">
+                <div class="space-y-2">
+                    <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                        <i class="fa-solid fa-headset text-xs"></i> {% translate "Helpdesk" %}
+                    </span>
+                    <h1 class="text-2xl font-black text-white tracking-tight">{% translate "Support Pipeline" %}</h1>
+                    <p class="text-xs text-slate-400 leading-relaxed">
+                        {% translate "Have inquiries regarding warranty processing or product metrics? Open a secure support ticket or reach out through our dedicated channels." %}
+                    </p>
+                </div>
+
+                <div class="space-y-4 pt-4 border-t border-slate-800 text-xs">
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                            <i class="fa-solid fa-envelope"></i>
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-300">{% translate "Direct Email" %}</p>
+                            <p class="text-slate-400 font-bold">support@techvault.internal</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                            <i class="fa-solid fa-clock"></i>
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-300">{% translate "Response SLA" %}</p>
+                            <p class="text-slate-400 font-bold">{% translate "Within 2 Hours (24/7 Priority)" %}</p>
+                        </div>
+                    </div>
+
+                    <div class="flex items-start gap-3">
+                        <div class="w-8 h-8 rounded-xl bg-indigo-500/10 border border-indigo-500/20 flex items-center justify-center text-indigo-400 shrink-0 mt-0.5">
+                            <i class="fa-solid fa-shield-halved"></i>
+                        </div>
+                        <div>
+                            <p class="font-black text-slate-300">{% translate "Encrypted Channel" %}</p>
+                            <p class="text-slate-400 font-bold">{% translate "End-to-End Ticket Verification" %}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Right Column: Interactive Support Ticket Form -->
+        <div class="lg:col-span-7">
+            <div class="bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-xl space-y-6">
+
+                <div class="space-y-1">
+                    <h2 class="text-xl font-black text-white tracking-tight">{% translate "Open Support Ticket" %}</h2>
+                    <p class="text-xs text-slate-400">{% translate "Fill out the telemetry credentials below to dispatch your issue." %}</p>
+                </div>
+
+                <form class="space-y-4" onsubmit="event.preventDefault(); alert('Demo Notice: Support ticket created successfully!');">
+
+                    <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                        <div>
+                            <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                                {% translate "Full Name" %}
+                            </label>
+                            <!-- Fixed input type from number to text -->
+                            <input type="text" required placeholder="John Doe"
+                                   class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                                {% translate "Associated Email" %}
+                            </label>
+                            <input type="email" required placeholder="name@example.com"
+                                   class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                        </div>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                            {% translate "Support Category" %}
+                        </label>
+                        <select class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all cursor-pointer">
+                            <option class="bg-slate-900">{% translate "Hardware Performance Issue" %}</option>
+                            <option class="bg-slate-900">{% translate "Secure Checkout / Payment Verification Fault" %}</option>
+                            <option class="bg-slate-900">{% translate "Identity Document Submission Processing" %}</option>
+                            <option class="bg-slate-900">{% translate "General Store Logistics Query" %}</option>
+                        </select>
+                    </div>
+
+                    <div>
+                        <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                            {% translate "Detailed Message Case" %}
+                        </label>
+                        <textarea rows="4" required placeholder="{% translate 'Outline specifications or symptoms of checkout disruption...' %}"
+                                  class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all resize-none"></textarea>
+                    </div>
+
+                    <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-wider py-3.5 rounded-xl text-xs transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                        <i class="fa-solid fa-paper-plane text-xs"></i>
+                        <span>{% translate "Submit Ticket Pipeline Case" %}</span>
+                    </button>
+                </form>
+
+            </div>
+        </div>
+
     </div>
-
-    <form class="space-y-4" onsubmit="event.preventDefault(); alert('Demo Notice: Support ticket created successfully!');">
-        <div class="grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Full Name</label>
-                <input type="text" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Associated Email</label>
-                <input type="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-            </div>
-        </div>
-
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Support Category</label>
-            <select class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-                <option>Hardware Performance Issue</option>
-                <option>Secure Checkout / Payment Verification Fault</option>
-                <option>Identity Document Submission Processing</option>
-                <option>General Store Logistics Query</option>
-            </select>
-        </div>
-
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Detailed Message Case</label>
-            <textarea rows="5" required placeholder="Outline specifications or symptoms of checkout disruption..." class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"></textarea>
-        </div>
-
-        <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-bold py-3 rounded-lg text-sm transition-colors shadow-md shadow-indigo-100">
-            Submit Ticket Pipeline Case
-        </button>
-    </form>
 </div>
 {% endblock %}

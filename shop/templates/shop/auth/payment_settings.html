@@ -1,81 +1,106 @@
 {% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}TechVault | {% translate "Payment Settings" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-4xl mx-auto my-8 px-4 flex flex-col md:flex-row gap-8 pb-16">
-    
-    <!-- Left Navigation Tab Sidebar Panel -->
+<div class="max-w-5xl mx-auto px-6 py-12 min-h-[80vh] flex flex-col md:flex-row gap-8 text-slate-100">
+
+    <!-- 🧭 Left Navigation Tab Sidebar Panel -->
     <aside class="w-full md:w-64 space-y-2 flex-shrink-0">
-        <a href="{% url 'shop:account_settings' %}" class="block px-4 py-3 bg-white text-gray-700 hover:bg-gray-50 border border-gray-100 text-sm font-semibold rounded-xl transition-colors">
-            Profile Settings
+        <a href="{% url 'shop:account_settings' %}" class="block px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-sm font-semibold rounded-xl transition-all">
+            <i class="fa-solid fa-user-gear mr-2 text-xs"></i> {% translate "Profile Settings" %}
         </a>
-        <a href="{% url 'shop:payment_settings' %}" class="block px-4 py-3 bg-indigo-600 text-white text-sm font-bold rounded-xl shadow-md shadow-indigo-100">
-            Payment Methods
+        <a href="{% url 'shop:payment_settings' %}" class="block px-4 py-3 bg-indigo-500/10 border border-indigo-500/20 text-indigo-400 text-sm font-bold rounded-xl shadow-lg shadow-indigo-900/20 transition-all">
+            <i class="fa-solid fa-credit-card mr-2 text-xs"></i> {% translate "Payment Methods" %}
         </a>
-        <a href="{% url 'shop:change_password' %}" class="block px-4 py-3 bg-white text-gray-700 hover:bg-gray-50 border border-gray-100 text-sm font-semibold rounded-xl transition-colors">
-            Security & Password
+        <a href="{% url 'shop:change_password' %}" class="block px-4 py-3 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 text-slate-400 hover:text-slate-200 hover:bg-slate-800/80 text-sm font-semibold rounded-xl transition-all">
+            <i class="fa-solid fa-shield-halved mr-2 text-xs"></i> {% translate "Security & Password" %}
         </a>
     </aside>
 
-    <!-- Main Payment Settings Center Panel -->
-    <section class="flex-grow bg-white border border-gray-100 rounded-2xl shadow-sm p-6 sm:p-8">
-        <div class="mb-6 pb-4 border-b border-gray-50">
-            <h1 class="text-2xl font-black text-gray-950">Payment Settings</h1>
-            <p class="text-sm text-gray-400 mt-0.5">Manage your digital wallets and primary electronic payment preferences.</p>
+    <!-- 💳 Main Payment Settings Center Panel -->
+    <section class="flex-grow bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl shadow-2xl p-6 sm:p-8">
+        <div class="mb-8 pb-4 border-b border-slate-800">
+            <h1 class="text-2xl font-black text-white tracking-tight">{% translate "Payment Settings" %}</h1>
+            <p class="text-sm text-slate-400 mt-1">{% translate "Manage your digital wallets and primary electronic payment preferences." %}</p>
         </div>
 
-        <!-- 💳 PRESET VISUAL WALLET CARD COMPONENT -->
-        <div class="mb-8 grid grid-cols-1 sm:grid-cols-2 gap-4">
-            <div class="bg-gradient-to-br from-indigo-600 to-purple-700 rounded-2xl p-6 text-white shadow-lg relative overflow-hidden h-44 flex flex-col justify-between">
-                <div class="flex justify-between items-start">
+        <!-- PRESET VISUAL WALLET CARD COMPONENT -->
+        <div class="mb-8 grid grid-cols-1 xl:grid-cols-2 gap-6">
+            <!-- Active Card -->
+            <div class="bg-gradient-to-br from-indigo-600 to-purple-800 rounded-2xl p-6 text-white shadow-xl shadow-indigo-900/30 relative overflow-hidden h-44 flex flex-col justify-between border border-indigo-500/30">
+                <div class="flex justify-between items-start relative z-10">
                     <div>
-                        <p class="text-[10px] text-indigo-200 uppercase font-bold tracking-widest">Active Wallet Account</p>
-                        <h3 class="text-lg font-black mt-0.5 tracking-wide">TechVault Ledger Card</h3>
+                        <p class="text-[10px] text-indigo-200 uppercase font-black tracking-widest">{% translate "Active Wallet Account" %}</p>
+                        <h3 class="text-lg font-black mt-0.5 tracking-wide">{% translate "TechVault Ledger Card" %}</h3>
                     </div>
-                    <span class="text-sm font-black bg-white/20 px-2.5 py-1 rounded-lg backdrop-blur-sm">VISA</span>
+                    <span class="text-sm font-black bg-white/20 px-2.5 py-1 rounded-lg backdrop-blur-md border border-white/10">VISA</span>
                 </div>
-                
-                <div class="space-y-1">
-                    <p class="text-xs text-indigo-200 font-semibold">User Account Handle</p>
+
+                <div class="space-y-1 relative z-10">
+                    <p class="text-[11px] text-indigo-200 font-bold uppercase tracking-wider">{% translate "User Account Handle" %}</p>
                     <div class="flex items-center justify-between">
-                        <p class="text-sm font-bold tracking-wider">@{{ request.user.username }}</p>
-                        <p class="text-xs bg-emerald-500/30 text-emerald-300 font-bold px-2 py-0.5 rounded-md border border-emerald-400/20">Verified</p>
+                        <p class="text-sm font-bold tracking-wider text-white">@{{ request.user.username }}</p>
+                        <p class="text-[10px] bg-emerald-500/20 text-emerald-300 font-black uppercase tracking-wider px-2 py-1 rounded-md border border-emerald-400/20 backdrop-blur-sm">
+                            <i class="fa-solid fa-check mr-1"></i> {% translate "Verified" %}
+                        </p>
                     </div>
                 </div>
-                
+
                 <!-- Background Geometric Accents -->
-                <div class="absolute -right-6 -bottom-6 w-24 h-24 bg-white/5 rounded-full blur-xl"></div>
+                <div class="absolute -right-6 -bottom-6 w-32 h-32 bg-white/5 rounded-full blur-2xl"></div>
+                <div class="absolute -left-6 -top-6 w-24 h-24 bg-black/10 rounded-full blur-xl"></div>
             </div>
-            
-            <div class="border-2 border-dashed border-gray-200 rounded-2xl p-6 flex flex-col items-center justify-center text-center group hover:border-indigo-500 transition-colors cursor-pointer h-44">
-                <span class="p-3 bg-gray-50 rounded-xl group-hover:bg-indigo-50 text-gray-400 group-hover:text-indigo-600 transition-colors mb-2">➕</span>
-                <h4 class="text-xs font-bold text-gray-900 uppercase tracking-wide">Link Alternate Method</h4>
-                <p class="text-[11px] text-gray-400 mt-0.5 max-w-[180px]">Add additional clearing configurations securely.</p>
+
+            <!-- Add New Method -->
+            <div class="border-2 border-dashed border-slate-700 bg-slate-800/30 rounded-2xl p-6 flex flex-col items-center justify-center text-center group hover:border-indigo-500 hover:bg-slate-800/60 transition-all cursor-pointer h-44">
+                <span class="w-12 h-12 flex items-center justify-center bg-slate-800 rounded-xl group-hover:bg-indigo-500/20 text-slate-400 group-hover:text-indigo-400 transition-colors mb-3 border border-slate-700 group-hover:border-indigo-500/30">
+                    <i class="fa-solid fa-plus text-lg"></i>
+                </span>
+                <h4 class="text-xs font-black text-slate-200 uppercase tracking-wider">{% translate "Link Alternate Method" %}</h4>
+                <p class="text-[11px] text-slate-500 mt-1 max-w-[180px]">{% translate "Add additional clearing configurations securely." %}</p>
             </div>
         </div>
 
         <!-- 🔒 SECURE TRANSACTION METRICS MOCK FORM -->
-        <form class="space-y-4" onsubmit="event.preventDefault(); alert('Security Clearance Success: Payment configurations simulated and linked to backend account securely!');">
-            <div class="bg-amber-50/60 border border-amber-200 rounded-xl p-4 flex items-start space-x-3 mb-4">
-                <span class="text-lg mt-0.5">🛡️</span>
+        <form class="space-y-5" onsubmit="event.preventDefault(); alert('{% translate "Security Clearance Success: Payment configurations simulated and linked to backend account securely!" %}');">
+
+            <div class="bg-amber-950/40 border border-amber-500/20 rounded-2xl p-4 flex items-start gap-4 mb-2">
+                <div class="mt-0.5 text-amber-500 bg-amber-500/10 p-2 rounded-lg">
+                    <i class="fa-solid fa-shield-halved text-lg"></i>
+                </div>
                 <div>
-                    <h5 class="text-xs font-bold text-amber-900 uppercase tracking-wide">Monolithic Security Ledger</h5>
-                    <p class="text-[11px] text-amber-700 mt-0.5 leading-relaxed">Transactions use PostgreSQL session matching tokens. Billing adjustments correspond directly with your registered passport parameters.</p>
+                    <h5 class="text-xs font-black text-amber-400 uppercase tracking-wider">{% translate "Monolithic Security Ledger" %}</h5>
+                    <p class="text-[11px] text-amber-500/80 mt-1 leading-relaxed">
+                        {% translate "Transactions use PostgreSQL session matching tokens. Billing adjustments correspond directly with your registered passport parameters." %}
+                    </p>
                 </div>
             </div>
 
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Electronic Billing Full Name</label>
-                <input type="text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50/50 cursor-not-allowed" value="{{ request.user.first_name }} {{ request.user.last_name }}" readonly>
+            <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                        {% translate "Electronic Billing Full Name" %}
+                    </label>
+                    <input type="text" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-xs font-bold text-slate-500 cursor-not-allowed focus:outline-none"
+                           value="{{ request.user.first_name }} {{ request.user.last_name }}" readonly>
+                </div>
+
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                        {% translate "Registered Verification ID" %}
+                    </label>
+                    <input type="text" class="w-full bg-slate-900/50 border border-slate-700/50 rounded-xl px-4 py-3 text-xs font-bold text-slate-500 cursor-not-allowed focus:outline-none"
+                           value="{{ request.user.userprofile.passport_number }}" readonly>
+                </div>
             </div>
 
-            <div>
-                <label class="text-xs font-bold text-gray-500 uppercase tracking-wide block mb-1">Registered Verification ID</label>
-                <input type="text" class="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm bg-gray-50/50 cursor-not-allowed" value="{{ request.user.profile.passport_number }}" readonly>
-            </div>
-
-            <div class="pt-4 border-t border-gray-100 flex justify-start">
-                <button type="submit" class="w-full sm:w-auto bg-gray-950 hover:bg-gray-900 text-white text-xs font-bold px-8 py-4 rounded-xl transition-all shadow-md active:scale-95 uppercase tracking-wider">
-                    Confirm Preferred Routing
+            <div class="pt-6 border-t border-slate-800 flex justify-start">
+                <button type="submit" class="w-full sm:w-auto bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-wider px-8 py-3.5 rounded-xl text-xs transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2">
+                    <i class="fa-solid fa-link text-xs"></i>
+                    <span>{% translate "Confirm Preferred Routing" %}</span>
                 </button>
             </div>
         </form>

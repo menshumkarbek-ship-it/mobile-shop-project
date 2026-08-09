@@ -22,8 +22,9 @@ urlpatterns = [
     path('catalog/', views.product_list, name='product_list'),
     path('catalog/<slug:category_slug>/', views.product_list, name='product_list_by_category'),
 
-    # --- Product Detail ---
+    # --- Product Detail & Specs ---
     path('product/<slug:product_slug>/', views.product_detail, name='product_detail'),
+    path('product/<slug:product_slug>/specs/', views.product_specs, name='product_specs'),
 
     # --- Cart & Checkout ---
     path('cart/', views.cart_detail, name='cart_detail'),
@@ -43,6 +44,7 @@ urlpatterns = [
     # --- Management & Auxiliary Pages ---
     path('management/product/add/', views.create_product, name='create_product'),
     path('management/product/add/<int:product_id>/', views.create_product, name='update_product'),
+    path('management/audit-logs/', views.admin_purchase_history, name='admin_purchase_history'),
     path('pages/about-us/', views.about_us, name='about_us'),
     path('pages/contact-us/', views.contact_us, name='contact_us'),
 ]

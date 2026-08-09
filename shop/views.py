@@ -1,3 +1,4 @@
+import os
 import requests
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib import messages
@@ -15,6 +16,9 @@ from .models import Product, Category, Order, OrderItem, UserProfile
 from .forms import UserSettingsForm, ProductCreateForm
 from .cart import Cart
 
+# Dynamic Microservice Host Resolution (Supports both Localhost and Docker Compose)
+FLASK_PDF_SERVICE_URL = os.getenv('FLASK_PDF_SERVICE_URL', 'http://127.0.0.1:8002')
+
 
 # ==========================================
 # 🏠 HOME & LANDING PAGE CONTROLLER
@@ -23,8 +27,9 @@ from .cart import Cart
 def home_page(request):
     """
     Renders the custom Home Page with:
-    - 🔴 Automatic Top Pick Hero Item (Latest unsold flagship product)
-    - 🟢 Latest Model per Brand in the Slideshow Dataset (Apple, Samsung, Xiaomi, etc.)
+    - Automatic Top Pick Hero Item (Latest unsold flagship product)
+    - Featured Laptop and Tablet promotional slide items
+    - Separated, isolated Top Picks Sections for Phones, Laptops, and Tablets
     """
     # 🏎️ Redis cached categories
     categories = cache.get('global_store_categories')
@@ -32,25 +37,49 @@ def home_page(request):
         categories = Category.objects.all()
         cache.set('global_store_categories', categories, 60 * 15)
 
-    # 🔴 Red Section: Automatic Top Pick Hero (Calculates the latest unsold product)
-    hero_product = Product.objects.filter(is_sold=False).order_by('-id').first()
+    # Automatic Top Pick Hero (Optimized query with select_related)
+    hero_product = Product.objects.filter(is_sold=False).select_related('category').order_by('-id').first()
 
-    # 🟢 Green Section: Distinct Top Model per Brand
-    all_unsold = Product.objects.filter(is_sold=False).select_related('category').order_by('-created_at')
+    # 💻 Grab the latest available laptop and tablet for the promotional slides
+    laptop_promo = Product.objects.filter(
+        is_sold=False,
+        category__name__icontains='laptop'
+    ).select_related('category').order_by('-id').first()
 
-    # Group by brand to pick only the single newest device per brand
-    latest_per_brand = {}
-    for product in all_unsold:
-        brand_key = product.brand.strip().title() if product.brand else "Generic"
-        if brand_key not in latest_per_brand:
-            latest_per_brand[brand_key] = product
+    tablet_promo = Product.objects.filter(
+        is_sold=False,
+        category__name__icontains='tablet'
+    ).select_related('category').order_by('-id').first()
 
-    top_picks_by_brand = list(latest_per_brand.values())
+    # 📱 Strictly Isolated Top Picks Containers for Phones, Laptops, and Tablets
+    phones_top_picks = Product.objects.filter(
+        is_sold=False
+    ).filter(
+        Q(category__slug__icontains='phone') | Q(category__name__icontains='phone') | Q(
+            category__name__icontains='mobile')
+    ).select_related('category').order_by('-id')[:5]
+
+    laptops_top_picks = Product.objects.filter(
+        is_sold=False
+    ).filter(
+        Q(category__slug__icontains='laptop') | Q(category__name__icontains='laptop')
+    ).select_related('category').order_by('-id')[:5]
+
+    tablets_top_picks = Product.objects.filter(
+        is_sold=False
+    ).filter(
+        Q(category__slug__icontains='tablet') | Q(category__name__icontains='tablet') | Q(
+            category__name__icontains='ipad') | Q(category__name__icontains='pad')
+    ).select_related('category').order_by('-id')[:5]
 
     context = {
         'categories': categories,
         'hero_product': hero_product,
-        'all_top_picks': top_picks_by_brand,
+        'laptop_promo': laptop_promo,
+        'tablet_promo': tablet_promo,
+        'phones_top_picks': phones_top_picks,
+        'laptops_top_picks': laptops_top_picks,
+        'tablets_top_picks': tablets_top_picks,
     }
     return render(request, 'shop/home.html', context)
 
@@ -60,12 +89,6 @@ def home_page(request):
 # ==========================================
 
 def product_list(request, category_slug=None):
-    """
-    Renders the catalog page:
-    - Interactive top filter bar (Device Type, Brand, Price Range)
-    - By default (no filters active): Renders separate rows for Phones, Laptops, Tablets (4 per row).
-    - When filters active: Renders a paginated 4-column grid layout.
-    """
     category = None
 
     # 🏎️ Redis cached categories
@@ -74,30 +97,33 @@ def product_list(request, category_slug=None):
         categories = Category.objects.all()
         cache.set('global_store_categories', categories, 60 * 15)
 
-    # Base Queryset: Unsold items ordered by latest additions
     products_list = Product.objects.filter(is_sold=False).select_related('category').order_by('-id')
 
-    # Read GET query filter parameters
     type_filter = request.GET.get('type') or category_slug
+
+    # 🛠️ Map plural navigation aliases to database category search terms securely
+    if type_filter == 'phones':
+        type_filter = 'phone'
+    elif type_filter == 'laptops':
+        type_filter = 'laptop'
+    elif type_filter == 'tablets':
+        type_filter = 'tablet'
+
     brand_filter = request.GET.get('brand')
     search_query = request.GET.get('search')
     min_price = request.GET.get('min_price')
     max_price = request.GET.get('max_price')
 
-    # Check if user has applied any filtering parameters
     has_active_filters = bool(type_filter or brand_filter or search_query or min_price or max_price)
 
-    # 1. Device Type / Category Filter
     if type_filter:
         products_list = products_list.filter(
             Q(category__slug__iexact=type_filter) | Q(category__name__icontains=type_filter)
         )
 
-    # 2. Brand / Model Filter
     if brand_filter:
         products_list = products_list.filter(brand__iexact=brand_filter)
 
-    # 3. Text Search Query Filter
     if search_query:
         products_list = products_list.filter(
             Q(name__icontains=search_query) |
@@ -105,7 +131,6 @@ def product_list(request, category_slug=None):
             Q(description__icontains=search_query)
         )
 
-    # 4. Price Range Filters
     if min_price:
         try:
             products_list = products_list.filter(price__gte=float(min_price))
@@ -118,11 +143,9 @@ def product_list(request, category_slug=None):
         except ValueError:
             pass
 
-    # Gather available brands for filter selection dropdown
     available_brands = Product.objects.filter(is_sold=False).values_list('brand', flat=True).distinct()
 
-    # Pagination engine (12 products per page = 3 rows of 4 products)
-    paginator = Paginator(products_list.distinct(), 12)
+    paginator = Paginator(products_list.distinct(), 15)
     page_number = request.GET.get('page')
 
     try:
@@ -130,13 +153,15 @@ def product_list(request, category_slug=None):
     except (PageNotAnInteger, EmptyPage):
         products = paginator.page(1)
 
-    # Grouped rows for default view without filters (4 items per category row)
     grouped_sections = {}
     if not has_active_filters:
         grouped_sections = {
-            'phones': Product.objects.filter(is_sold=False, category__name__icontains='phone').order_by('-id')[:4],
-            'laptops': Product.objects.filter(is_sold=False, category__name__icontains='laptop').order_by('-id')[:4],
-            'tablets': Product.objects.filter(is_sold=False, category__name__icontains='tablet').order_by('-id')[:4],
+            'phones': Product.objects.filter(is_sold=False, category__name__icontains='phone').select_related(
+                'category').order_by('-id')[:5],
+            'laptops': Product.objects.filter(is_sold=False, category__name__icontains='laptop').select_related(
+                'category').order_by('-id')[:5],
+            'tablets': Product.objects.filter(is_sold=False, category__name__icontains='tablet').select_related(
+                'category').order_by('-id')[:5],
         }
 
     context = {
@@ -156,8 +181,16 @@ def product_list(request, category_slug=None):
 
 
 def product_detail(request, product_slug):
-    product = get_object_or_404(Product, slug=product_slug, is_sold=False)
+    product = get_object_or_404(Product.objects.select_related('category'), slug=product_slug, is_sold=False)
     return render(request, 'shop/product/detail.html', {'product': product})
+
+
+def product_specs(request, product_slug):
+    """
+    Renders a dedicated standalone specifications page for a specific product.
+    """
+    product = get_object_or_404(Product.objects.select_related('category'), slug=product_slug, is_sold=False)
+    return render(request, 'shop/product/specs.html', {'product': product})
 
 
 # ==========================================
@@ -232,8 +265,13 @@ def logout_customer(request):
 def cart_add(request, product_id):
     cart = Cart(request)
     product = get_object_or_404(Product, id=product_id, is_sold=False)
-    cart.add(product=product, quantity=1)
-    messages.success(request, f"{product.name} added to cart!")
+
+    added = cart.add(product=product, quantity=1)
+    if added:
+        messages.success(request, f"{product.name} added to cart!")
+    else:
+        messages.warning(request, f"{product.name} is already in your cart!")
+
     return redirect('shop:cart_detail')
 
 
@@ -258,12 +296,15 @@ def account_settings(request):
     profile, created = UserProfile.objects.get_or_create(user=request.user)
 
     if request.method == 'POST':
+        # 🛠️ Passing request.FILES ensures profile pictures and binary uploads are processed correctly
         form = UserSettingsForm(request.POST, request.FILES, instance=request.user, profile_instance=profile)
         if form.is_valid():
             updated_user = form.save()
             update_session_auth_hash(request, updated_user)
             messages.success(request, "Your account settings have been updated successfully.")
             return redirect('shop:account_settings')
+        else:
+            messages.error(request, "Please correct the errors below.")
     else:
         form = UserSettingsForm(instance=request.user, profile_instance=profile)
 
@@ -315,7 +356,9 @@ def checkout_order(request):
     product.is_sold = True
     product.save()
 
-    flask_url = "http://127.0.0.1:8002/api/v1/generate-invoice"
+    request.session['techvault_cart'] = {}
+
+    flask_endpoint = f"{FLASK_PDF_SERVICE_URL}/api/v1/generate-invoice"
     payload = {
         "order_id": str(order.id),
         "customer_name": f"{request.user.first_name} {request.user.last_name}" if request.user.first_name else request.user.username,
@@ -324,14 +367,15 @@ def checkout_order(request):
     }
 
     try:
-        response = requests.post(flask_url, json=payload, timeout=5)
+        response = requests.post(flask_endpoint, json=payload, timeout=5)
         if response.status_code == 201:
             messages.success(request, f"Success! Order #{order.id} processed. Your background PDF receipt is ready!")
-            request.session['techvault_cart'] = {}
         else:
-            messages.warning(request, "Order logged, but invoice background worker returned an error.")
-    except requests.exceptions.ConnectionError:
-        messages.warning(request, "Order logged securely, but background receipt microservice is currently offline.")
+            messages.warning(request,
+                             f"Order #{order.id} processed, but background invoice worker returned status code {response.status_code}.")
+    except requests.exceptions.RequestException:
+        messages.warning(request,
+                         f"Order #{order.id} logged securely, but the PDF invoice microservice is currently offline.")
 
     return redirect('shop:product_list')
 
@@ -381,7 +425,7 @@ def create_product(request, product_id=None):
     else:
         form = ProductCreateForm(instance=product_instance)
 
-    all_products = Product.objects.filter(is_sold=False).order_by('-id')
+    all_products = Product.objects.filter(is_sold=False).select_related('category').order_by('-id')
 
     context = {
         'form': form,
@@ -389,3 +433,28 @@ def create_product(request, product_id=None):
         'all_products': all_products,
     }
     return render(request, 'shop/product/create.html', context)
+
+
+# ==========================================
+# 🛡️ ADMINISTRATOR AUDIT LOGGING
+# ==========================================
+
+@login_required
+@user_passes_test(is_admin_or_manager, login_url='shop:product_list', redirect_field_name=None)
+def admin_purchase_history(request):
+    """
+    Renders a clean, one-line audit log of all system-wide customer purchases for administrators.
+    """
+    all_purchases = OrderItem.objects.select_related('order__user', 'product').order_by('-order__created_at')
+
+    paginator = Paginator(all_purchases, 25)
+    page_number = request.GET.get('page')
+    try:
+        purchases = paginator.page(page_number)
+    except (PageNotAnInteger, EmptyPage):
+        purchases = paginator.page(1)
+
+    context = {
+        'purchases': purchases,
+    }
+    return render(request, 'shop/admin/purchase_history.html', context)

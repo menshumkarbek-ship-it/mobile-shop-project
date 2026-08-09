@@ -1,27 +1,29 @@
 version: '3.8'
 
 services:
-  # 💾 Database Service Layer Container
+  # 💾 PostgreSQL Relational Database Service
   db:
     image: postgres:15-alpine
     container_name: techvault_postgres_container
-    volumes:
-      - postgres_data:/var/lib/postgresql/data
+    restart: always
     environment:
       - POSTGRES_DB=mobile_shop_db
       - POSTGRES_USER=postgres
       - POSTGRES_PASSWORD=postgres
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
     ports:
       - "5432:5432"
 
-  # ⚡ Redis In-Memory Performance Caching Backend
+  # ⚡ Redis In-Memory Task Broker & Cache
   redis:
     image: redis:7-alpine
     container_name: techvault_redis_container
+    restart: always
     ports:
       - "6379:6379"
 
-  # 🐍 Django Primary Backend API Gateway Monolith
+  # 🐍 Django Primary Monolith & API Gateway
   web:
     build: .
     container_name: techvault_django_monolith
@@ -30,9 +32,57 @@ services:
       - .:/app
     ports:
       - "8000:8000"
+    environment:
+      - DB_HOST=db
+      - DB_NAME=mobile_shop_db
+      - DB_USER=postgres
+      - DB_PASSWORD=postgres
+      - REDIS_URL=redis://redis:6379/0
+      - FLASK_PDF_SERVICE_URL=http://flask_service:8002
+      - FASTAPI_SERVICE_URL=http://fastapi_service:8001
     depends_on:
       - db
       - redis
+
+  # ⚙️ Celery Asynchronous Background Task Worker
+  celery_worker:
+    build: .
+    container_name: techvault_celery_worker
+    command: celery -A config worker --loglevel=info
+    volumes:
+      - .:/app
+    environment:
+      - DB_HOST=db
+      - REDIS_URL=redis://redis:6379/0
+    depends_on:
+      - web
+      - redis
+
+  # 🚀 FastAPI Stock Engine Microservice (Port 8001)
+  fastapi_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.fastapi
+    container_name: techvault_fastapi_service
+    ports:
+      - "8001:8001"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
+
+  # 📄 Flask PDF Invoice Microservice (Port 8002)
+  flask_service:
+    build:
+      context: .
+      dockerfile: Dockerfile.flask
+    container_name: techvault_flask_service
+    ports:
+      - "8002:8002"
+    environment:
+      - DB_HOST=db
+    depends_on:
+      - db
 
 volumes:
   postgres_data:

@@ -1,8 +1,15 @@
-from django.db import models
+from io import BytesIO
+from PIL import Image, ImageOps
+from django.conf import settings
 from django.contrib.auth.models import User
+from django.core.files.base import ContentFile
+from django.db import models
 
 
-# 1. Extending the default User model for detailed signup info (Passport, Phone)
+# ==========================================
+# 👤 USER PROFILE EXTENSION
+# ==========================================
+
 class UserProfile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
     phone_number = models.CharField(max_length=20, blank=True, null=True)
@@ -12,63 +19,119 @@ class UserProfile(models.Model):
         help_text="Required for customer identity verification"
     )
     registration_date = models.DateTimeField(auto_now_add=True)
-
     profile_picture = models.ImageField(upload_to="profile_pics/", blank=True, null=True)
 
     def __str__(self):
         return f"{self.user.first_name} {self.user.last_name} ({self.user.username})"
 
 
-# 2. Product Categories (Laptops vs. Mobile Phones)
+# ==========================================
+# 🏷️ CATEGORY MANAGEMENT
+# ==========================================
+
 class Category(models.Model):
-    name = models.CharField(max_length=100, unique=True)  # e.g., 'Laptop' or 'Mobile Phone'
-    slug = models.SlugField(max_length=100, unique=True)  # e.g., 'laptops' or 'mobile-phones'
+    name = models.CharField(max_length=100, unique=True)
+    slug = models.SlugField(max_length=100, unique=True)
 
     class Meta:
         verbose_name_plural = "Categories"
+        ordering = ['name']
 
     def __str__(self):
         return self.name
 
 
-# 3. Main Product catalog with "Sold" and specification tracking
+# ==========================================
+# 📱 PRODUCT CATALOG & AUTOMATED NO-BG PROCESSOR
+# ==========================================
+
 class Product(models.Model):
     category = models.ForeignKey(Category, on_delete=models.CASCADE, related_name='products')
-    brand = models.CharField(max_length=100, help_text="e.g., Acer, ASUS, Apple, HP, Samsung")
-    name = models.CharField(max_length=255)
+    brand = models.CharField(max_length=100, db_index=True, help_text="e.g., Apple, Samsung, Asus")
+    name = models.CharField(max_length=255, db_index=True)
     slug = models.SlugField(max_length=255, unique=True)
-    price = models.DecimalField(max_digits=10, decimal_places=2)
+    price = models.DecimalField(max_digits=10, decimal_places=2, db_index=True)
     description = models.TextField()
     image = models.ImageField(upload_to='products/', blank=True, null=True)
 
-    # Stores laptop-specific or phone-specific attributes (RAM, CPU, Screen, Battery)
     specifications = models.JSONField(
         default=dict,
-        help_text="Store characteristics as JSON. (e.g., {'RAM': '16GB', 'CPU': 'M3'})"
+        help_text="Store characteristics as JSON. (e.g., {'RAM': '16GB', 'Storage': '512GB'})"
     )
 
-    # Real-time stock filter: True means it is sold and must be hidden from the UI
     is_sold = models.BooleanField(default=False, db_index=True)
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        indexes = [
+            models.Index(fields=['is_sold', 'brand']),
+            models.Index(fields=['is_sold', '-created_at']),
+        ]
 
     def __str__(self):
         status = "SOLD" if self.is_sold else "AVAILABLE"
         return f"[{status}] {self.brand} - {self.name}"
 
-from django.conf import settings
-from django.db import models
+    def save(self, *args, **kwargs):
+        """
+        📸 AUTOMATED WHITE BACKGROUND REMOVAL & 1:1 SQUARE CROP
+        Scans uploaded image pixels, turns solid white backgrounds transparent, and center-crops to 700x700.
+        """
+        if self.image and hasattr(self.image, 'file'):
+            try:
+                img = Image.open(self.image)
+                if img.mode != 'RGBA':
+                    img = img.convert('RGBA')
+
+                # 🪄 AUTOMATICALLY STRIP SOLID WHITE BACKGROUNDS
+                datas = img.getdata()
+                new_data = []
+                for item in datas:
+                    # If pixel is pure white or very light gray (R, G, B > 240), make it transparent
+                    if item[0] > 240 and item[1] > 240 and item[2] > 240:
+                        new_data.append((255, 255, 255, 0))
+                    else:
+                        new_data.append(item)
+
+                img.putdata(new_data)
+
+                # Target 1:1 Square Dimensions (700x700) with center crop
+                canvas_size = (700, 700)
+                cropped_img = ImageOps.fit(img, canvas_size, method=Image.Resampling.LANCZOS, centering=(0.5, 0.5))
+
+                # Save processed image to memory buffer
+                buffer = BytesIO()
+                cropped_img.save(buffer, format='PNG', quality=90)
+                buffer.seek(0)
+
+                clean_filename = f"{self.slug if self.slug else 'device'}_nobg.png"
+                self.image.save(clean_filename, ContentFile(buffer.read()), save=False)
+            except Exception as exc:
+                print(f"[IMAGE PROCESSOR NOTICE] Error processing background: {exc}")
+
+        super().save(*args, **kwargs)
+
+
+# ==========================================
+# 🧾 ORDER & TRANSACTION RECORDING
+# ==========================================
 
 class Order(models.Model):
     user = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='orders')
-    created_at = models.DateTimeField(auto_now_add=True)
+    created_at = models.DateTimeField(auto_now_add=True, db_index=True)
     total_price = models.DecimalField(max_digits=10, decimal_places=2, default=0.00)
+
+    class Meta:
+        ordering = ['-created_at']
 
     def __str__(self):
         return f"Order #{self.id} by {self.user.username}"
 
+
 class OrderItem(models.Model):
     order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
-    product = models.ForeignKey('Product', on_delete=models.PROTECT) # Protect ensures historical sales data isn't deleted
+    product = models.ForeignKey(Product, on_delete=models.PROTECT)
     price = models.DecimalField(max_digits=10, decimal_places=2)
     quantity = models.PositiveIntegerField(default=1)
 

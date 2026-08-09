@@ -1,5 +1,5 @@
 # Use an explicit lightweight optimized official Python image layer
-FROM python:3.11-slim
+FROM python:3.12-slim
 
 # Prevent Python from writing pyc cache dumps to tracking disks
 ENV PYTHONDONTWRITEBYTECODE=1

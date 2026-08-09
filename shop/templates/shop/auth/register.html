@@ -1,57 +1,102 @@
 {% extends "shop/base.html" %}
+{% load static %}
+{% load i18n %}
+
+{% block title %}TechVault | {% translate "Create Secure Account" %}{% endblock %}
 
 {% block content %}
-<div class="max-w-md mx-auto bg-white border border-gray-200 rounded-2xl p-8 shadow-sm my-8">
-    <h2 class="text-2xl font-extrabold text-gray-900 text-center mb-2">Create Secure Account</h2>
-    <p class="text-xs text-gray-400 text-center mb-6">Identity verification is required for high-value mobile and laptop transactions.</p>
+<div class="max-w-md mx-auto px-6 py-12 min-h-[80vh] flex items-center justify-center text-slate-100">
+    <div class="w-full bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl space-y-6">
 
-    {% if messages %}
-        {% for message in messages %}
-            <div class="bg-red-50 text-red-700 text-sm p-3 rounded-lg mb-4 font-medium">{{ message }}</div>
-        {% endfor %}
-    {% endif %}
+        <div class="text-center space-y-2">
+            <span class="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-black uppercase tracking-wider bg-indigo-500/10 text-indigo-400 border border-indigo-500/20">
+                <i class="fa-solid fa-shield-halved text-xs"></i> {% translate "Secure Onboarding" %}
+            </span>
+            <h2 class="text-3xl font-black text-white tracking-tight">{% translate "Create Secure Account" %}</h2>
+            <p class="text-xs text-slate-400">
+                {% translate "Identity verification is required for high-value mobile and laptop transactions." %}
+            </p>
+        </div>
 
-    <form method="POST" class="space-y-4">
-        {% csrf_token %}
-        <div class="grid grid-cols-2 gap-4">
-            <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">First Name</label>
-                <input type="text" name="first_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+        {% if messages %}
+            {% for message in messages %}
+                <div class="p-4 text-xs font-semibold rounded-xl border {% if message.tags == 'success' %}bg-emerald-950/60 text-emerald-400 border-emerald-800/80{% else %}bg-amber-950/60 text-amber-400 border-amber-800/80{% endif %} shadow-sm flex items-center gap-2">
+                    <i class="fa-solid {% if message.tags == 'success' %}fa-circle-check{% else %}fa-triangle-exclamation{% endif %}"></i>
+                    <span>{{ message }}</span>
+                </div>
+            {% endfor %}
+        {% endif %}
+
+        <form method="POST" class="space-y-4">
+            {% csrf_token %}
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                        {% translate "First Name" %}
+                    </label>
+                    <input type="text" name="first_name" required placeholder="John"
+                           class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
+                <div>
+                    <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                        {% translate "Last Name" %}
+                    </label>
+                    <input type="text" name="last_name" required placeholder="Doe"
+                           class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+                </div>
             </div>
+
             <div>
-                <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Last Name</label>
-                <input type="text" name="last_name" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
+                <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                    {% translate "Username" %}
+                </label>
+                <input type="text" name="username" required placeholder="johndoe"
+                       class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
             </div>
-        </div>
 
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Username</label>
-            <input type="text" name="username" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
+            <div>
+                <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                    {% translate "Email Address" %}
+                </label>
+                <input type="email" name="email" required placeholder="name@example.com"
+                       class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+            </div>
 
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Email Address</label>
-            <input type="email" name="email" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
+            <div>
+                <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                    {% translate "Phone Number" %}
+                </label>
+                <input type="text" name="phone_number" placeholder="+123456789" required
+                       class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+            </div>
 
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Phone Number</label>
-            <input type="text" name="phone_number" placeholder="+123456789" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
+            <div class="p-4 bg-indigo-950/40 rounded-2xl border border-indigo-500/20 space-y-1.5">
+                <label class="block text-[11px] font-black uppercase text-indigo-400 tracking-wider">
+                    {% translate "Passport / National ID" %}
+                </label>
+                <input type="text" name="passport_number" placeholder="AB123456" required
+                       class="w-full bg-slate-900 border border-indigo-500/30 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+            </div>
 
-        <div class="p-4 bg-indigo-50/50 rounded-xl border border-indigo-100">
-            <label class="block text-xs font-bold uppercase text-indigo-700 mb-1">Passport / National ID ID</label>
-            <input type="text" name="passport_number" placeholder="AB123456" required class="w-full border border-indigo-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500 bg-white">
-        </div>
+            <div>
+                <label class="block text-[11px] font-black uppercase text-slate-400 tracking-wider mb-1.5">
+                    {% translate "Password" %}
+                </label>
+                <input type="password" name="password" required placeholder="••••••••"
+                       class="w-full bg-slate-800/80 border border-slate-700/80 rounded-xl px-4 py-3 text-xs font-bold text-slate-100 placeholder-slate-500 focus:outline-none focus:ring-2 focus:ring-indigo-500 transition-all">
+            </div>
 
-        <div>
-            <label class="block text-xs font-bold uppercase text-gray-500 mb-1">Password</label>
-            <input type="password" name="password" required class="w-full border border-gray-300 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500">
-        </div>
+            <button type="submit" class="w-full bg-indigo-600 hover:bg-indigo-500 text-white font-black uppercase tracking-wider py-4 rounded-xl text-xs transition-all shadow-lg shadow-indigo-600/30 flex items-center justify-center gap-2 mt-2">
+                <i class="fa-solid fa-user-check text-xs"></i>
+                <span>{% translate "Register Verified Profile" %}</span>
+            </button>
+        </form>
 
-        <button type="submit" class="w-full bg-gray-900 hover:bg-gray-800 text-white font-bold py-2.5 rounded-lg text-sm mt-4 transition-colors">
-            Register Verified Profile
-        </button>
-    </form>
+        <p class="text-center text-xs text-slate-500">
+            {% translate "Already have an account?" %}
+            <a href="{% url 'shop:login' %}" class="font-bold text-indigo-400 hover:text-indigo-300 transition-colors">{% translate "Sign In" %}</a>
+        </p>
+
+    </div>
 </div>
 {% endblock %}

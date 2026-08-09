@@ -9,9 +9,10 @@ logger = logging.getLogger(__name__)
 @receiver(post_save, sender=Order)
 def log_new_order_event(sender, instance, created, **kwargs):
     """
-    🎯 AUTOMATED SIGNAL TRIGGER: Executes instantly upon Order record instantiation.
+    AUTOMATED SIGNAL TRIGGER: Executes instantly upon Order record creation.
     """
     if created:
-        print(f"\n📡 [SIGNAL TRACKER] SUCCESS: Secure transaction instance caught for Order #{instance.id}!")
-        print(f"💰 Transaction total value calculated at: ${instance.total_price if hasattr(instance, 'total_price') else 'Pending'}\n")
+        total_val = instance.total_price if hasattr(instance, 'total_price') else 'Pending'
+        print(f"\n[SIGNAL TRACKER] SUCCESS: Secure transaction instance created for Order #{instance.id}")
+        print(f"Transaction total value calculated at: ${total_val}\n")
         logger.info(f"Order #{instance.id} logged seamlessly through signal router listeners.")

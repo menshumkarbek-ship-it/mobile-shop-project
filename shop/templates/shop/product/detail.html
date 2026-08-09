@@ -5,50 +5,77 @@
 {% block title %}{{ product.name }} | TechVault{% endblock %}
 
 {% block content %}
-<div class="max-w-7xl mx-auto px-6 py-12 space-y-12">
+<div class="max-w-7xl mx-auto px-6 py-12 space-y-10 min-h-screen text-slate-100">
 
-    <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-500 hover:text-indigo-600 transition-colors">
+    <!-- Breadcrumb Backlink -->
+    <a href="{% url 'shop:product_list' %}" class="inline-flex items-center gap-2 text-xs font-bold text-slate-400 hover:text-indigo-400 transition-colors">
         &larr; {% translate "Back to Catalog" %}
     </a>
 
     <div class="grid grid-cols-1 lg:grid-cols-12 gap-12 items-start">
 
-        <div class="lg:col-span-6 bg-white border border-slate-200/80 rounded-3xl p-8 flex items-center justify-center min-h-[420px] shadow-sm">
+        <!-- Left Column: Product Image Showcase -->
+        <div class="lg:col-span-6 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 flex items-center justify-center min-h-[460px] shadow-2xl relative overflow-hidden group">
+            <div class="absolute top-4 left-4 bg-emerald-950/80 border border-emerald-800/80 text-emerald-400 text-[10px] font-black uppercase tracking-wider px-3 py-1 rounded-full z-20">
+                {% translate "In Stock & Verified" %}
+            </div>
+
             {% if product.image %}
-                <img src="{{ product.image.url }}" alt="{{ product.name }}" class="max-h-96 w-auto object-contain hover:scale-105 transition-transform duration-300">
+                <!-- 🖼️ Fixed Aspect Ratio Canvas with Pure White Background Card -->
+                <div class="w-full max-w-md aspect-square bg-white rounded-2xl p-6 flex items-center justify-center shadow-inner relative z-10 border border-slate-800/50">
+                    <img src="{{ product.image.url }}" alt="{{ product.name }}" style="mix-blend-mode: multiply;" class="w-full h-full object-contain object-center group-hover:scale-105 transition-transform duration-500">
+                </div>
             {% else %}
-                <div class="text-slate-300 font-bold text-sm">{% translate "No Image Available" %}</div>
+                <div class="text-slate-500 font-bold text-sm">{% translate "No Image Available" %}</div>
             {% endif %}
+
+            <!-- Ambient Glow Effect -->
+            <div class="absolute inset-0 bg-indigo-600/5 blur-3xl pointer-events-none"></div>
         </div>
 
-        <div class="lg:col-span-6 space-y-6">
-            <div>
-                <span class="text-xs font-black uppercase text-indigo-600 bg-indigo-50 px-3 py-1 rounded-md tracking-wider">
+        <!-- Right Column: Product Information & Purchase Pipeline -->
+        <div class="lg:col-span-6 space-y-8 bg-slate-900/80 backdrop-blur-xl border border-slate-800/80 rounded-3xl p-8 sm:p-10 shadow-2xl">
+
+            <!-- Header & Brand -->
+            <div class="space-y-3">
+                <span class="text-xs font-black uppercase text-indigo-400 bg-indigo-950/60 border border-indigo-800/60 px-3.5 py-1.5 rounded-lg tracking-wider">
                     {{ product.brand }}
                 </span>
-                <h1 class="text-3xl font-black text-slate-950 tracking-tight mt-2">{{ product.name }}</h1>
+                <h1 class="text-3xl sm:text-4xl font-black text-white tracking-tight">{{ product.name }}</h1>
             </div>
 
-            <div class="text-3xl font-black text-emerald-600">
-                ${{ product.price }}
+            <!-- Pricing Box -->
+            <div class="flex items-center justify-between bg-slate-950/60 border border-slate-800/80 p-5 rounded-2xl">
+                <div>
+                    <span class="block text-[10px] font-black uppercase text-slate-400 tracking-wider">{% translate "Verified Asset Price" %}</span>
+                    <span class="text-3xl font-black text-emerald-400">${{ product.price }}</span>
+                </div>
+                <div class="text-right">
+                    <span class="block text-[10px] font-black uppercase text-slate-400 tracking-wider">{% translate "Catalog ID" %}</span>
+                    <span class="text-xs font-bold text-slate-300">#TV-{{ product.id }}</span>
+                </div>
             </div>
 
-            <div class="space-y-2 border-t border-b border-slate-100 py-4">
+            <!-- Description -->
+            <div class="space-y-2 border-t border-b border-slate-800/80 py-5">
                 <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Description" %}</h3>
-                <p class="text-slate-600 text-sm leading-relaxed">
+                <p class="text-slate-300 text-sm leading-relaxed">
                     {{ product.description|default:_("No description provided for this model.") }}
                 </p>
             </div>
 
-            {% if product.specs %}
+            <!-- Technical Specifications -->
+            {% if product.specifications %}
             <div class="space-y-3">
-                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Technical Specifications" %}</h3>
-                <div class="bg-slate-50 rounded-2xl p-4 border border-slate-200/60">
-                    <dl class="divide-y divide-slate-200/60 text-xs">
-                        {% for key, value in product.specs.items %}
-                        <div class="py-2 flex justify-between gap-4">
-                            <dt class="font-bold text-slate-500 capitalize">{{ key }}</dt>
-                            <dd class="font-black text-slate-900 text-right">{{ value }}</dd>
+                <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider flex items-center gap-2">
+                    <i class="fa-solid fa-microchip text-indigo-400"></i> {% translate "Technical Specifications" %}
+                </h3>
+                <div class="bg-slate-950/60 rounded-2xl p-4 border border-slate-800/80">
+                    <dl class="divide-y divide-slate-800/60 text-xs">
+                        {% for key, value in product.specifications.items %}
+                        <div class="py-2.5 flex justify-between gap-4">
+                            <dt class="font-bold text-slate-400 capitalize">{{ key }}</dt>
+                            <dd class="font-black text-slate-200 text-right">{{ value }}</dd>
                         </div>
                         {% endfor %}
                     </dl>
@@ -57,16 +84,30 @@
             {% else %}
             <div class="space-y-2">
                 <h3 class="text-xs font-black uppercase text-slate-400 tracking-wider">{% translate "Technical Specifications" %}</h3>
-                <p class="text-xs text-slate-400 italic">{% translate "No detailed specification parameters logged for this product." %}</p>
+                <p class="text-xs text-slate-500 italic">{% translate "No detailed specification parameters logged for this product." %}</p>
             </div>
             {% endif %}
 
-            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="pt-4">
+            <!-- Add to Cart Action -->
+            <form action="{% url 'shop:cart_add' product.id %}" method="POST" class="pt-2">
                 {% csrf_token %}
-                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-700 text-white font-black text-sm uppercase tracking-wider rounded-2xl transition-all shadow-lg shadow-indigo-200">
-                    + {% translate "Add to Cart" %}
+                <button type="submit" class="w-full py-4 bg-indigo-600 hover:bg-indigo-500 text-white font-black text-xs uppercase tracking-wider rounded-2xl transition-all shadow-xl shadow-indigo-600/30 flex items-center justify-center gap-2 hover:scale-[1.01]">
+                    <i class="fa-solid fa-cart-plus text-xs"></i>
+                    <span>{% translate "Add to Cart Pipeline" %}</span>
                 </button>
             </form>
+
+            <!-- Trust Badges -->
+            <div class="grid grid-cols-2 gap-4 pt-2 text-[11px] text-slate-400 border-t border-slate-800/80">
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-shield-halved text-indigo-400"></i>
+                    <span>{% translate "Secure Transactions" %}</span>
+                </div>
+                <div class="flex items-center gap-2">
+                    <i class="fa-solid fa-truck-fast text-indigo-400"></i>
+                    <span>{% translate "Instant PDF Receipt" %}</span>
+                </div>
+            </div>
 
         </div>
 
